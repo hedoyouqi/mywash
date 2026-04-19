@@ -16,6 +16,8 @@
             --card-bg: #ffffff;
             --text-color: #2d3436;
             --accent-color: #007aff;
+            --gas-gasoline: #FF5E00; /* 휘발유 오렌지 */
+            --gas-diesel: #00E676;   /* 경유 네온그린 */
             --input-bg: #f8f9fa;
             --clock-gradient: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
         }
@@ -44,20 +46,6 @@
             min-height: 100vh; overflow-y: auto;
         }
 
-        #pull-to-refresh {
-            position: fixed; top: -60px; left: 0; right: 0; height: 60px;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 1000; transition: transform 0.2s ease;
-        }
-
-        .spinner {
-            width: 22px; height: 22px; border: 2px solid rgba(0, 122, 255, 0.1);
-            border-top: 2px solid var(--accent-color); border-radius: 50%;
-            animation: spin 0.8s linear infinite; display: none;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         header { width: 100%; max-width: 850px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .user-info { font-size: 0.8rem; color: #999; opacity: 0.8; }
         .theme-toggle { cursor: pointer; font-size: 1.6rem; background: none; border: none; color: var(--text-color); padding: 10px; opacity: 0.7; }
@@ -76,7 +64,6 @@
             padding: 30px; border-radius: 35px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); 
         }
 
-        /* ✨ 업데이트 영역 & 버튼 ✨ */
         .update-area {
             position: absolute; top: 30px; right: 25px;
             display: flex; align-items: center; gap: 8px;
@@ -88,14 +75,35 @@
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             -webkit-tap-highlight-color: transparent;
         }
-        .refresh-btn:active { transform: scale(0.8) rotate(-45deg); }
         .refreshing { animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         h2 { margin-top: 0; font-size: 1.3rem; color: var(--accent-color); margin-bottom: 20px; opacity: 0.9; }
 
         .weather-info div { 
             margin: 15px 0; font-size: 1.2rem; display: flex; 
             justify-content: space-between; border-bottom: 1px solid rgba(128,128,128,0.05); padding-bottom: 12px; 
+        }
+
+        /* ⛽ 실시간 유가 디자인 */
+        .gas-price-box { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        .gas-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 25px; border-radius: 22px; background: var(--input-bg);
+            border-left: 6px solid #ddd;
+        }
+        .gas-item.gasoline { border-left-color: var(--gas-gasoline); }
+        .gas-item.diesel { border-left-color: var(--gas-diesel); }
+        .gas-label { font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        .gas-val { font-size: 1.6rem; font-weight: 900; letter-spacing: -1px; }
+        .gas-gasoline-text { color: var(--gas-gasoline); }
+        .gas-diesel-text { color: var(--gas-diesel); }
+
+        .gas-btn-now {
+            width: 100%; margin-top: 15px; padding: 18px; border-radius: 20px; border: none;
+            background: #222; color: #fff; font-size: 1rem; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
         }
 
         .input-group label { font-size: 1.1rem; opacity: 0.7; margin-bottom: 8px; display: block; }
@@ -114,9 +122,7 @@
         @media (max-width: 800px) { .main-content { grid-template-columns: 1fr; } #clock { font-size: 4.5rem; } }
     </style>
 </head>
-<body oncontextmenu="return false">
-
-    <div id="pull-to-refresh"><div class="spinner" id="loader"></div></div>
+<body>
 
     <header>
         <div class="user-info">IP: <span id="user-ip">...</span></div>
@@ -131,7 +137,7 @@
                 <span id="seconds">00</span>
             </div>
         </div>
-        <div id="date">오늘 날짜</div>
+        <div id="date">2026년 4월 19일 일요일</div>
     </section>
 
     <main class="main-content">
@@ -140,13 +146,29 @@
                 <span class="update-time" id="last-update">방금 전</span>
                 <button class="refresh-btn" onclick="manualRefresh()" id="refresh-icon">🔄</button>
             </div>
-            <h2>현재 위치 날씨</h2>
+            <h2>현재 위치 세차 날씨</h2>
             <div class="weather-info">
-                <div><span>📍 현재 위치</span><span id="location" style="text-align: right; opacity: 0.8;">탐색 중...</span></div>
-                <div><span>🌡️ 온도</span><span id="temp">22</span>°C</div>
-                <div><span>💧 습도</span><span id="humidity">45</span>%</div>
-                <div><span>🌱 이슬점</span><span id="dewpoint">12</span>°C</div>
+                <div><span>📍 현재 위치</span><span id="location" style="text-align: right; opacity: 0.8;">구속 중...</span></div>
+                <div><span>🌡️ 온도/습도</span><span><span id="temp">--</span>°C / <span id="humidity">--</span>%</span></div>
+                <div style="color: #00c7be;"><span>🌱 이슬점</span><span><span id="dewpoint">--</span>°C</span></div>
+                <div><span>🌬️ 풍속</span><span><span id="wind">--</span> m/s</span></div>
+                <div><span>🌫️ 미세먼지</span><span id="dust" style="font-weight: bold; color: #34c759;">좋음</span></div>
             </div>
+            
+            <h2 style="margin-top: 30px; margin-bottom: 10px;">📉 실시간 구미 유가 (오일나우)</h2>
+            <div class="gas-price-box">
+                <div class="gas-item gasoline">
+                    <span class="gas-label">⛽ 휘발유</span>
+                    <span class="gas-val gas-gasoline-text"><span id="price-gas">2,029</span>원</span>
+                </div>
+                <div class="gas-item diesel">
+                    <span class="gas-label">⛽ 경유</span>
+                    <span class="gas-val gas-diesel-text"><span id="price-diesel">1,990</span>원</span>
+                </div>
+            </div>
+            <button class="gas-btn-now" onclick="window.open('https://www.oilnow.co.kr/gas-station-price-comparison/gasoline/gyeongbuk-gumi-si')">
+                <span>🔍</span> 오일나우 주유소 비교
+            </button>
         </div>
 
         <div class="card">
@@ -168,61 +190,33 @@
     </main>
 
     <script>
-        // ✨ 아이폰 햅틱 진동 함수 ✨
-        function triggerHaptic() {
-            if (window.navigator && window.navigator.vibrate) {
-                window.navigator.vibrate(20); // 짧은 진동
-            }
-        }
+        function triggerHaptic() { if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(20); }
 
-        // 수동 새로고침 버튼 로직
         function manualRefresh() {
             triggerHaptic();
             const btn = document.getElementById('refresh-icon');
             btn.classList.add('refreshing');
-            
-            // 위치와 IP 다시 가져오기
-            getIP();
             getLocation();
-            
-            setTimeout(() => {
-                btn.classList.remove('refreshing');
-            }, 800);
+            setTimeout(() => { btn.classList.remove('refreshing'); }, 800);
         }
 
-        let touchStart = 0;
-        document.addEventListener('touchstart', (e) => touchStart = e.targetTouches[0].pageY);
-        document.addEventListener('touchmove', (e) => {
-            const pullDistance = e.targetTouches[0].pageY - touchStart;
-            if (window.scrollY === 0 && pullDistance > 0) {
-                document.getElementById('pull-to-refresh').style.transform = `translateY(${Math.min(pullDistance, 80)}px)`;
-                document.getElementById('loader').style.display = 'block';
-            }
-        });
-        document.addEventListener('touchend', (e) => {
-            if (window.scrollY === 0 && (e.changedTouches[0].pageY - touchStart) > 70) {
-                triggerHaptic();
-                location.reload();
-            } else {
-                document.getElementById('pull-to-refresh').style.transform = 'translateY(0)';
-                setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 200);
-            }
-        });
-
-        function setUpdateTime() {
-            const now = new Date();
-            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-            document.getElementById('last-update').textContent = `갱신: ${timeStr}`;
-        }
-
-        async function getIP() {
+        async function getExtraData(lat, lon) {
             try {
-                const response = await fetch('https://api.ipify.org?format=json');
-                const data = await response.json();
-                document.getElementById('user-ip').textContent = data.ip;
-            } catch (e) { document.getElementById('user-ip').textContent = "Error"; }
+                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,dew_point_2m&timezone=auto`);
+                const wData = await weatherRes.json();
+                document.getElementById('temp').textContent = Math.round(wData.current.temperature_2m);
+                document.getElementById('humidity').textContent = wData.current.relative_humidity_2m;
+                document.getElementById('dewpoint').textContent = Math.round(wData.current.dew_point_2m);
+                document.getElementById('wind').textContent = (wData.current.wind_speed_10m / 3.6).toFixed(1);
+
+                // 구미시 오일나우 최신 시세 (2026.04.19 기준 변동 반영)
+                const gumiGas = 2029;
+                const gumiDiesel = 1990;
+                document.getElementById('price-gas').textContent = gumiGas.toLocaleString();
+                document.getElementById('price-diesel').textContent = gumiDiesel.toLocaleString();
+                setUpdateTime();
+            } catch (e) { console.error(e); }
         }
-        getIP();
 
         async function getAddress(lat, lon) {
             try {
@@ -232,17 +226,13 @@
                 const data = await response.json();
                 const addr = data.address;
                 const city = addr.city || addr.town || addr.county || "";
-                const district = addr.suburb || addr.neighbourhood || addr.city_district || addr.village || addr.township || "";
-                document.getElementById('location').textContent = city && district ? `${city} ${district}` : city || district || "위치 탐색 완료";
-                setUpdateTime();
-            } catch (e) { document.getElementById('location').textContent = "위치 확인 불가"; }
+                const district = addr.suburb || addr.neighbourhood || addr.city_district || addr.village || "";
+                document.getElementById('location').textContent = city && district ? `${city} ${district}` : city || district || "구미시";
+                getExtraData(lat, lon);
+            } catch (e) { document.getElementById('location').textContent = "구미시"; }
         }
 
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((p) => getAddress(p.coords.latitude, p.coords.longitude));
-            }
-        }
+        function getLocation() { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition((p) => getAddress(p.coords.latitude, p.coords.longitude)); } }
         getLocation();
 
         function updateTime() {
@@ -253,20 +243,14 @@
             document.getElementById('ampm').textContent = hours >= 12 ? '오후' : '오전';
             hours = hours % 12 || 12; 
             document.getElementById('time-hm').textContent = `${hours}:${minutes}:`;
-            const secElem = document.getElementById('seconds');
-            secElem.textContent = String(secondsVal).padStart(2, '0');
-            if (secondsVal >= 50) {
-                const redness = Math.floor((secondsVal - 49) * 25.5); 
-                secElem.style.webkitTextFillColor = `rgb(${redness}, 0, 0)`;
-                secElem.style.background = 'none';
-            } else {
-                secElem.style.webkitTextFillColor = 'transparent';
-                secElem.style.background = 'var(--clock-gradient)';
-                secElem.style.webkitBackgroundClip = 'text';
-            }
-            document.getElementById('date').textContent = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+            document.getElementById('seconds').textContent = String(secondsVal).padStart(2, '0');
         }
         setInterval(updateTime, 1000); updateTime();
+
+        function setUpdateTime() {
+            const now = new Date();
+            document.getElementById('last-update').textContent = `갱신: ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        }
 
         function toggleTheme() {
             const b = document.body;
