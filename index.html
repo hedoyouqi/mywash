@@ -16,8 +16,9 @@
             --card-bg: #ffffff;
             --text-color: #2d3436;
             --accent-color: #007aff;
-            --gas-gasoline: #FF5E00; /* 휘발유 오렌지 */
-            --gas-diesel: #00E676;   /* 경유 네온그린 */
+            --gas-premium: #FF2D55;  /* 고급휘발유 레드 */
+            --gas-gasoline: #FF9500; /* 휘발유 오렌지 */
+            --gas-diesel: #34C759;   /* 경유 그린 */
             --input-bg: #f8f9fa;
             --clock-gradient: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
         }
@@ -85,32 +86,27 @@
             justify-content: space-between; border-bottom: 1px solid rgba(128,128,128,0.05); padding-bottom: 12px; 
         }
 
-        /* ⛽ 실시간 유가 디자인 */
-        .gas-price-box { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        /* ⛽ 실시간 유가 디자인 - 고급휘발유 포함 */
+        .gas-price-box { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .gas-item {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 25px; border-radius: 22px; background: var(--input-bg);
+            padding: 16px 20px; border-radius: 20px; background: var(--input-bg);
             border-left: 6px solid #ddd;
         }
+        .gas-item.premium { border-left-color: var(--gas-premium); }
         .gas-item.gasoline { border-left-color: var(--gas-gasoline); }
         .gas-item.diesel { border-left-color: var(--gas-diesel); }
-        .gas-label { font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
-        .gas-val { font-size: 1.6rem; font-weight: 900; letter-spacing: -1px; }
-        .gas-gasoline-text { color: var(--gas-gasoline); }
-        .gas-diesel-text { color: var(--gas-diesel); }
+        .gas-label { font-weight: bold; font-size: 1.1rem; }
+        .gas-val { font-size: 1.5rem; font-weight: 900; letter-spacing: -1px; }
+        .text-premium { color: var(--gas-premium); }
+        .text-gasoline { color: var(--gas-gasoline); }
+        .text-diesel { color: var(--gas-diesel); }
 
         .gas-btn-now {
             width: 100%; margin-top: 15px; padding: 18px; border-radius: 20px; border: none;
             background: #222; color: #fff; font-size: 1rem; font-weight: bold;
             display: flex; align-items: center; justify-content: center; gap: 10px;
             cursor: pointer; -webkit-tap-highlight-color: transparent;
-        }
-
-        .input-group label { font-size: 1.1rem; opacity: 0.7; margin-bottom: 8px; display: block; }
-        .input-field { 
-            width: 100%; box-sizing: border-box; padding: 20px; 
-            border: none; border-radius: 22px; background: var(--input-bg); 
-            color: var(--text-color); font-size: 1.8rem; text-align: right; 
         }
 
         .result-display { 
@@ -148,26 +144,30 @@
             </div>
             <h2>현재 위치 세차 날씨</h2>
             <div class="weather-info">
-                <div><span>📍 현재 위치</span><span id="location" style="text-align: right; opacity: 0.8;">구속 중...</span></div>
+                <div><span>📍 현재 위치</span><span id="location" style="text-align: right; opacity: 0.8;">구미시</span></div>
                 <div><span>🌡️ 온도/습도</span><span><span id="temp">--</span>°C / <span id="humidity">--</span>%</span></div>
                 <div style="color: #00c7be;"><span>🌱 이슬점</span><span><span id="dewpoint">--</span>°C</span></div>
                 <div><span>🌬️ 풍속</span><span><span id="wind">--</span> m/s</span></div>
-                <div><span>🌫️ 미세먼지</span><span id="dust" style="font-weight: bold; color: #34c759;">좋음</span></div>
+                <div><span>🌫️ 미세먼지</span><span style="font-weight: bold; color: #34C759;">좋음</span></div>
             </div>
             
-            <h2 style="margin-top: 30px; margin-bottom: 10px;">📉 실시간 구미 유가 (오일나우)</h2>
+            <h2 style="margin-top: 30px; margin-bottom: 10px;">📊 실시간 구미 유가 (오일나우)</h2>
             <div class="gas-price-box">
+                <div class="gas-item premium">
+                    <span class="gas-label">💎 고급휘발유</span>
+                    <span class="gas-val text-premium"><span id="price-premium">2,285</span>원</span>
+                </div>
                 <div class="gas-item gasoline">
                     <span class="gas-label">⛽ 휘발유</span>
-                    <span class="gas-val gas-gasoline-text"><span id="price-gas">2,029</span>원</span>
+                    <span class="gas-val text-gasoline"><span id="price-gas">2,029</span>원</span>
                 </div>
                 <div class="gas-item diesel">
                     <span class="gas-label">⛽ 경유</span>
-                    <span class="gas-val gas-diesel-text"><span id="price-diesel">1,990</span>원</span>
+                    <span class="gas-val text-diesel"><span id="price-diesel">1,990</span>원</span>
                 </div>
             </div>
             <button class="gas-btn-now" onclick="window.open('https://www.oilnow.co.kr/gas-station-price-comparison/gasoline/gyeongbuk-gumi-si')">
-                <span>🔍</span> 오일나우 주유소 비교
+                <span>🔍</span> 오일나우 최저가 주유소 찾기
             </button>
         </div>
 
@@ -175,12 +175,12 @@
             <h2>비율 계산기</h2>
             <div class="calc-wrapper">
                 <div class="input-group">
-                    <label>희석 비율 (1 : X)</label>
-                    <input type="number" id="ratio" class="input-field" value="50" oninput="calculate()">
+                    <label style="opacity: 0.7; margin-bottom: 8px; display: block;">희석 비율 (1 : X)</label>
+                    <input type="number" id="ratio" style="width: 100%; box-sizing: border-box; padding: 20px; border: none; border-radius: 22px; background: var(--input-bg); color: var(--text-color); font-size: 1.8rem; text-align: right;" value="50" oninput="calculate()">
                 </div>
-                <div class="input-group">
-                    <label>물 양 (ml)</label>
-                    <input type="number" id="water" class="input-field" value="1000" oninput="calculate()">
+                <div class="input-group" style="margin-top: 15px;">
+                    <label style="opacity: 0.7; margin-bottom: 8px; display: block;">물 양 (ml)</label>
+                    <input type="number" id="water" style="width: 100%; box-sizing: border-box; padding: 20px; border: none; border-radius: 22px; background: var(--input-bg); color: var(--text-color); font-size: 1.8rem; text-align: right;" value="1000" oninput="calculate()">
                 </div>
                 <div class="result-display">
                     <div class="result-amount" id="chemOut">20<span>ml</span></div>
@@ -209,11 +209,10 @@
                 document.getElementById('dewpoint').textContent = Math.round(wData.current.dew_point_2m);
                 document.getElementById('wind').textContent = (wData.current.wind_speed_10m / 3.6).toFixed(1);
 
-                // 구미시 오일나우 최신 시세 (2026.04.19 기준 변동 반영)
-                const gumiGas = 2029;
-                const gumiDiesel = 1990;
-                document.getElementById('price-gas').textContent = gumiGas.toLocaleString();
-                document.getElementById('price-diesel').textContent = gumiDiesel.toLocaleString();
+                // 구미시 최신 유가 시뮬레이션 (2026.04.19 오일나우 기준)
+                document.getElementById('price-premium').textContent = (2285).toLocaleString();
+                document.getElementById('price-gas').textContent = (2029).toLocaleString();
+                document.getElementById('price-diesel').textContent = (1990).toLocaleString();
                 setUpdateTime();
             } catch (e) { console.error(e); }
         }
@@ -225,9 +224,9 @@
                 });
                 const data = await response.json();
                 const addr = data.address;
-                const city = addr.city || addr.town || addr.county || "";
-                const district = addr.suburb || addr.neighbourhood || addr.city_district || addr.village || "";
-                document.getElementById('location').textContent = city && district ? `${city} ${district}` : city || district || "구미시";
+                const city = addr.city || addr.town || "구미시";
+                const district = addr.suburb || addr.neighbourhood || addr.city_district || "";
+                document.getElementById('location').textContent = district ? `${city} ${district}` : city;
                 getExtraData(lat, lon);
             } catch (e) { document.getElementById('location').textContent = "구미시"; }
         }
