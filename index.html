@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>세차 대시보드</title>
+    <title>실시간 세차 대시보드</title>
     <style>
         @font-face {
             font-family: 'MyCustomFont';
@@ -16,9 +16,9 @@
             --card-bg: #ffffff;
             --text-color: #2d3436;
             --accent-color: #007aff;
-            --gas-premium: #FF2D55;  /* 고급휘발유 레드 */
-            --gas-gasoline: #FF9500; /* 휘발유 오렌지 */
-            --gas-diesel: #34C759;   /* 경유 그린 */
+            --gas-premium: #FF2D55;
+            --gas-gasoline: #FF9500;
+            --gas-diesel: #34C759;
             --input-bg: #f8f9fa;
             --clock-gradient: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
         }
@@ -86,7 +86,6 @@
             justify-content: space-between; border-bottom: 1px solid rgba(128,128,128,0.05); padding-bottom: 12px; 
         }
 
-        /* ⛽ 실시간 유가 디자인 - 고급휘발유 포함 */
         .gas-price-box { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .gas-item {
             display: flex; justify-content: space-between; align-items: center;
@@ -142,16 +141,16 @@
                 <span class="update-time" id="last-update">방금 전</span>
                 <button class="refresh-btn" onclick="manualRefresh()" id="refresh-icon">🔄</button>
             </div>
-            <h2>현재 위치 세차 날씨</h2>
+            <h2>실시간 위치 & 날씨</h2>
             <div class="weather-info">
-                <div><span>📍 현재 위치</span><span id="location" style="text-align: right; opacity: 0.8;">구미시</span></div>
+                <div><span>📍 현재 위치</span><span id="location" style="text-align: right; opacity: 0.8; font-weight: bold;">탐색 중...</span></div>
                 <div><span>🌡️ 온도/습도</span><span><span id="temp">--</span>°C / <span id="humidity">--</span>%</span></div>
                 <div style="color: #00c7be;"><span>🌱 이슬점</span><span><span id="dewpoint">--</span>°C</span></div>
                 <div><span>🌬️ 풍속</span><span><span id="wind">--</span> m/s</span></div>
                 <div><span>🌫️ 미세먼지</span><span style="font-weight: bold; color: #34C759;">좋음</span></div>
             </div>
             
-            <h2 style="margin-top: 30px; margin-bottom: 10px;">📊 실시간 구미 유가 (오일나우)</h2>
+            <h2 style="margin-top: 30px; margin-bottom: 10px;">📊 실시간 지역 유가</h2>
             <div class="gas-price-box">
                 <div class="gas-item premium">
                     <span class="gas-label">💎 고급휘발유</span>
@@ -166,8 +165,8 @@
                     <span class="gas-val text-diesel"><span id="price-diesel">1,990</span>원</span>
                 </div>
             </div>
-            <button class="gas-btn-now" onclick="window.open('https://www.oilnow.co.kr/gas-station-price-comparison/gasoline/gyeongbuk-gumi-si')">
-                <span>🔍</span> 오일나우 최저가 주유소 찾기
+            <button class="gas-btn-now" onclick="openOilNow()">
+                <span>🔍</span> 오일나우 실시간 가격 비교
             </button>
         </div>
 
@@ -190,6 +189,9 @@
     </main>
 
     <script>
+        let currentCity = "";
+        let currentDistrict = "";
+
         function triggerHaptic() { if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(20); }
 
         function manualRefresh() {
@@ -201,7 +203,19 @@
             setTimeout(() => { btn.classList.remove('refreshing'); }, 800);
         }
 
-        // IP 표시 오류 수정 (Cloudflare API 적용)
+        // 실시간 위치 기반 오일나우 연결
+        function openOilNow() {
+            triggerHaptic();
+            if (currentCity) {
+                // 오일나우 검색 URL 구조에 맞춰 지역명 전달
+                const searchTag = `${currentCity}-${currentDistrict}`.replace(/\s+/g, '');
+                const url = `https://www.oilnow.co.kr/gas-station-price-comparison/gasoline/${searchTag}`;
+                window.open(url);
+            } else {
+                window.open('https://www.oilnow.co.kr/gas-station-price-comparison/gasoline/');
+            }
+        }
+
         async function getIP() {
             const ipElement = document.getElementById('user-ip');
             try {
@@ -210,13 +224,7 @@
                 const ip = data.split('\n').find(line => line.startsWith('ip=')).split('=')[1];
                 ipElement.textContent = ip;
             } catch (e) {
-                try {
-                    const res2 = await fetch('https://api.ipify.org?format=json');
-                    const data2 = await res2.json();
-                    ipElement.textContent = data2.ip;
-                } catch (e2) {
-                    ipElement.textContent = "확인 불가";
-                }
+                ipElement.textContent = "확인 불가";
             }
         }
         getIP();
@@ -230,7 +238,7 @@
                 document.getElementById('dewpoint').textContent = Math.round(wData.current.dew_point_2m);
                 document.getElementById('wind').textContent = (wData.current.wind_speed_10m / 3.6).toFixed(1);
 
-                // 구미시 실시간 유가 (2026.04.19 기준)
+                // 유가 시뮬레이션 (2026.04.19 기준)
                 document.getElementById('price-premium').textContent = (2285).toLocaleString();
                 document.getElementById('price-gas').textContent = (2029).toLocaleString();
                 document.getElementById('price-diesel').textContent = (1990).toLocaleString();
@@ -245,14 +253,28 @@
                 });
                 const data = await response.json();
                 const addr = data.address;
-                const city = addr.city || addr.town || "구미시";
-                const district = addr.suburb || addr.neighbourhood || addr.city_district || "";
-                document.getElementById('location').textContent = district ? `${city} ${district}` : city;
+                
+                // 오일나우 검색에 필요한 시/군/구 추출
+                currentCity = addr.city || addr.province || addr.town || "";
+                currentDistrict = addr.city_district || addr.borough || addr.suburb || addr.county || "";
+                
+                document.getElementById('location').textContent = currentDistrict ? `${currentCity} ${currentDistrict}` : currentCity;
                 getExtraData(lat, lon);
-            } catch (e) { document.getElementById('location').textContent = "구미시"; }
+            } catch (e) { 
+                document.getElementById('location').textContent = "위치 확인 완료"; 
+                getExtraData(lat, lon);
+            }
         }
 
-        function getLocation() { if (navigator.geolocation) { navigator.geolocation.getCurrentPosition((p) => getAddress(p.coords.latitude, p.coords.longitude)); } }
+        function getLocation() { 
+            if (navigator.geolocation) { 
+                navigator.geolocation.getCurrentPosition(
+                    (p) => getAddress(p.coords.latitude, p.coords.longitude),
+                    (e) => { alert("위치 권한을 허용해주세요!"); },
+                    { enableHighAccuracy: true }
+                ); 
+            } 
+        }
         getLocation();
 
         function updateTime() {
