@@ -55,27 +55,7 @@
   <img src="https://img.shields.io/badge/Burger_King-D62300?style=for-the-badge&logo=burger-king&logoColor=white">
   <img src="https://img.shields.io/badge/CU_Convenience-652D90?style=for-the-badge&logo=cu&logoColor=white">
 </p>
-### Development & OS
-<p>
-  <img src="https://img.shields.io/badge/Windows_10-0078D6?style=for-the-badge&logo=windows-10&logoColor=white">
-  <img src="https://img.shields.io/badge/iPhone_16_Pro-000000?style=for-the-badge&logo=apple&logoColor=white">
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white">
-</p>
 
-### Communication & Community
-<p>
-  <img src="https://img.shields.io/badge/Telegram-26A69A?style=for-the-badge&logo=telegram&logoColor=white">
-  <img src="https://img.shields.io/badge/LINE-00C300?style=for-the-badge&logo=line&logoColor=white">
-  <img src="https://img.shields.io/badge/Pornhub-FF9900?style=for-the-badge&logo=pornhub&logoColor=black">
-  <img src="https://img.shields.io/badge/Truckers_Union-222222?style=for-the-badge&logo=truck&logoColor=white">
-</p>
-
-### Daily Life Infrastructure
-<p>
-  <img src="https://img.shields.io/badge/McDonald's-FBC02D?style=for-the-badge&logo=mcdonalds&logoColor=red">
-  <img src="https://img.shields.io/badge/Burger_King-D62300?style=for-the-badge&logo=burger-king&logoColor=white">
-  <img src="https://img.shields.io/badge/CU_Convenience-652D90?style=for-the-badge&logo=cu&logoColor=white">
-</p>
 
 ---
 
