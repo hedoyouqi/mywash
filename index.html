@@ -7,21 +7,21 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
-            --bg-color: #f4f7f6;
+            --bg-color: #f0f3f5;
             --card-bg: #ffffff;
-            --text-color: #111;
+            --text-color: #2d3436;
             --accent-color: #007aff;
-            --input-bg: #eff2f5;
-            --clock-gradient: linear-gradient(135deg, #111 0%, #555 50%, #222 100%);
+            --input-bg: #f8f9fa;
+            --clock-gradient: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
         }
 
         [data-theme="dark"] {
-            --bg-color: #0d0d0d;
-            --card-bg: #1a1a1a;
-            --text-color: #ffffff;
+            --bg-color: #0a0a0a;
+            --card-bg: #1c1c1e;
+            --text-color: #f5f5f7;
             --accent-color: #0a84ff;
-            --input-bg: #2a2a2a;
-            --clock-gradient: linear-gradient(135deg, #ffffff 0%, #aaa 50%, #eee 100%);
+            --input-bg: #2c2c2e;
+            --clock-gradient: linear-gradient(135deg, #ffffff 0%, #d1d1d6 100%);
         }
 
         /* 보안 및 터치 설정 */
@@ -30,8 +30,10 @@
             -ms-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
-            /* 기본 당겨서 새로고침 방지 (커스텀 구현을 위함) */
             overscroll-behavior-y: contain;
+            /* 폰트 부드럽게 렌더링 */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         input {
@@ -43,8 +45,8 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: 'Pretendard', -apple-system, sans-serif;
-            font-weight: 800; 
-            transition: all 0.3s ease;
+            font-weight: 600; /* 너무 딱딱하지 않은 적당한 굵기 */
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             margin: 0;
             padding: 20px;
             display: flex;
@@ -54,13 +56,13 @@
             overflow-y: auto;
         }
 
-        /* ✨ 새로고침 로딩 표시 스타일 ✨ */
+        /* ✨ 새로고침 로딩 표시 ✨ */
         #pull-to-refresh {
             position: fixed;
-            top: -50px;
+            top: -60px;
             left: 0;
             right: 0;
-            height: 50px;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -69,56 +71,134 @@
         }
 
         .spinner {
-            width: 25px;
-            height: 25px;
-            border: 3px solid rgba(0, 122, 255, 0.2);
-            border-top: 3px solid var(--accent-color);
+            width: 22px;
+            height: 22px;
+            border: 2px solid rgba(0, 122, 255, 0.1);
+            border-top: 2px solid var(--accent-color);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
             display: none;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        header { 
+            width: 100%; 
+            max-width: 850px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
         }
 
-        /* 기존 스타일 유지 */
-        header { width: 100%; max-width: 850px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .user-info { font-size: 0.9rem; font-weight: 900; color: var(--accent-color); background: var(--input-bg); padding: 8px 15px; border-radius: 10px; }
-        .theme-toggle { cursor: pointer; font-size: 1.8rem; background: none; border: none; color: var(--text-color); padding: 10px; }
-        .clock-section { text-align: center; margin-bottom: 50px; }
-        #clock-wrapper { display: flex; align-items: baseline; justify-content: center; gap: 15px; }
-        #ampm { font-size: 2.5rem; font-weight: 900; opacity: 0.6; }
-        #clock { font-size: 6.5rem; font-weight: 900; letter-spacing: -5px; line-height: 1; display: flex; }
-        .time-main { background: var(--clock-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        #seconds { background: var(--clock-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; transition: all 0.3s ease; }
-        #date { font-size: 1.5rem; font-weight: 700; opacity: 0.8; margin-top: 10px; }
-        .main-content { display: grid; grid-template-columns: 1fr 1.2fr; gap: 25px; width: 100%; max-width: 850px; }
-        .card { background-color: var(--card-bg); padding: 35px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        h2 { margin-top: 0; font-size: 1.4rem; font-weight: 900; color: var(--accent-color); margin-bottom: 25px; display: inline-block; border-bottom: 3px solid var(--accent-color); padding-bottom: 5px; }
-        .weather-info div { margin: 18px 0; font-size: 1.2rem; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(128,128,128,0.1); padding-bottom: 10px; }
-        .calc-wrapper { display: flex; flex-direction: column; gap: 20px; }
-        .input-group { display: flex; flex-direction: column; gap: 10px; }
-        .input-group label { font-size: 1.1rem; font-weight: 800; }
-        .input-field { width: 100%; box-sizing: border-box; padding: 18px; border: 3px solid transparent; border-radius: 18px; background: var(--input-bg); color: var(--text-color); font-size: 1.5rem; font-weight: 900; text-align: right; }
-        .liter-hint { font-size: 0.9rem; color: var(--accent-color); text-align: right; margin-top: -5px; font-weight: 700; }
-        .result-display { margin-top: 15px; padding: 30px; background: var(--accent-color); color: white; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0, 122, 255, 0.3); }
-        .result-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; opacity: 0.9; }
-        .result-amount { font-size: 3.5rem; font-weight: 900; letter-spacing: -1px; }
-        .result-amount span { font-size: 1.3rem; margin-left: 5px; opacity: 0.8; }
+        /* ✨ 접속 IP 디자인 수정: 작고 은은한 회색 ✨ */
+        .user-info {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #999; /* 눈에 안 띄는 회색 */
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+        }
 
-        @media (max-width: 800px) { .main-content { grid-template-columns: 1fr; } #clock { font-size: 4.5rem; } }
+        .theme-toggle { cursor: pointer; font-size: 1.6rem; background: none; border: none; color: var(--text-color); padding: 10px; opacity: 0.7; }
+        
+        .clock-section { text-align: center; margin-bottom: 40px; }
+        #clock-wrapper { display: flex; align-items: baseline; justify-content: center; gap: 12px; }
+        
+        /* 폰트 부드럽게 조정 */
+        #ampm { font-size: 2.2rem; font-weight: 700; opacity: 0.4; letter-spacing: -1px; }
+        #clock { font-size: 6rem; font-weight: 800; letter-spacing: -3px; line-height: 1; display: flex; }
+        
+        .time-main { 
+            background: var(--clock-gradient); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+        }
+        
+        #seconds { 
+            background: var(--clock-gradient); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+            transition: color 0.3s ease; 
+        }
+
+        #date { font-size: 1.3rem; font-weight: 600; opacity: 0.5; margin-top: 12px; letter-spacing: -0.5px; }
+
+        .main-content { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; width: 100%; max-width: 850px; }
+
+        /* ✨ 카드 모서리를 더 둥글고 부드럽게 ✨ */
+        .card { 
+            background-color: var(--card-bg); 
+            padding: 30px; 
+            border-radius: 35px; /* 더 부드러운 라운드 */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05); 
+        }
+
+        h2 { 
+            margin-top: 0; 
+            font-size: 1.1rem; 
+            font-weight: 700; 
+            color: var(--accent-color); 
+            margin-bottom: 20px; 
+            opacity: 0.9;
+        }
+
+        .weather-info div { 
+            margin: 15px 0; 
+            font-size: 1.1rem; 
+            display: flex; 
+            justify-content: space-between; 
+            border-bottom: 1px solid rgba(128,128,128,0.05); 
+            padding-bottom: 12px; 
+            font-weight: 500;
+        }
+
+        .calc-wrapper { display: flex; flex-direction: column; gap: 15px; }
+        .input-group label { font-size: 1rem; font-weight: 600; opacity: 0.7; margin-bottom: 8px; display: block; }
+
+        /* 입력창 디자인 부드럽게 */
+        .input-field { 
+            width: 100%; 
+            box-sizing: border-box; 
+            padding: 20px; 
+            border: none; 
+            border-radius: 22px; 
+            background: var(--input-bg); 
+            color: var(--text-color); 
+            font-size: 1.6rem; 
+            font-weight: 700; 
+            text-align: right; 
+            transition: background 0.2s;
+        }
+        .input-field:focus { outline: 2px solid var(--accent-color); background: var(--card-bg); }
+
+        .liter-hint { font-size: 0.85rem; color: var(--accent-color); text-align: right; margin-top: 5px; font-weight: 600; opacity: 0.8; }
+
+        /* 결과창 부드러운 라운드 */
+        .result-display { 
+            margin-top: 10px; 
+            padding: 25px; 
+            background: var(--accent-color); 
+            color: white; 
+            border-radius: 25px; 
+            text-align: center; 
+            box-shadow: 0 10px 25px rgba(0, 122, 255, 0.2); 
+        }
+        .result-title { font-size: 1rem; font-weight: 600; margin-bottom: 5px; opacity: 0.8; }
+        .result-amount { font-size: 3.2rem; font-weight: 800; letter-spacing: -1px; }
+        .result-amount span { font-size: 1.2rem; margin-left: 4px; opacity: 0.7; }
+
+        @media (max-width: 800px) { .main-content { grid-template-columns: 1fr; } #clock { font-size: 4.2rem; } }
     </style>
 </head>
 <body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
 
-    <div id="pull-to-refresh">
-        <div class="spinner" id="loader"></div>
-    </div>
+    <div id="pull-to-refresh"><div class="spinner" id="loader"></div></div>
 
     <header>
-        <div class="user-info">접속 IP: <span id="user-ip">불러오는 중...</span></div>
+        <div class="user-info">IP: <span id="user-ip">...</span></div>
         <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
     </header>
 
@@ -137,28 +217,27 @@
         <div class="card">
             <h2>현재 위치 날씨</h2>
             <div class="weather-info">
-                <div><span>📍 현재 위치</span><span id="location" style="text-align: right;">위치 찾는 중...</span></div>
-                <div><span>🌡️ 현재 온도</span><span id="temp">22</span>°C</div>
-                <div><span>💧 현재 습도</span><span id="humidity">45</span>%</div>
+                <div><span>📍 현재 위치</span><span id="location" style="text-align: right; opacity: 0.8;">탐색 중...</span></div>
+                <div><span>🌡️ 온도</span><span id="temp">22</span>°C</div>
+                <div><span>💧 습도</span><span id="humidity">45</span>%</div>
                 <div><span>🌱 이슬점</span><span id="dewpoint">12</span>°C</div>
             </div>
         </div>
 
         <div class="card">
-            <h2>케미컬 계산기</h2>
+            <h2>비율 계산기</h2>
             <div class="calc-wrapper">
                 <div class="input-group">
-                    <label>약품 비율 (1 : X)</label>
+                    <label>희석 비율 (1 : X)</label>
                     <input type="number" id="ratio" class="input-field" value="50" oninput="calculate()">
                 </div>
                 <div class="input-group">
-                    <label>사용할 물 양 (ml)</label>
+                    <label>물 양 (ml)</label>
                     <input type="number" id="water" class="input-field" value="1000" oninput="calculate()">
-                    <div id="literHint" class="liter-hint">(= 1.0 리터)</div>
+                    <div id="literHint" class="liter-hint">(= 1.0L)</div>
                 </div>
-
                 <div class="result-display">
-                    <div class="result-title">필요한 약품 양</div>
+                    <div class="result-title">필요한 케미컬</div>
                     <div class="result-amount" id="chemOut">20<span>ml</span></div>
                 </div>
             </div>
@@ -166,46 +245,22 @@
     </main>
 
     <script>
-        // ✨ 당겨서 새로고침 로직 ✨
+        // 당겨서 새로고침 로직
         let touchStart = 0;
-        let touchEnd = 0;
-        const refreshThreshold = 80; // 당기는 거리 임계값
-
-        document.addEventListener('touchstart', (e) => {
-            touchStart = e.targetTouches[0].pageY;
-        });
-
+        const refreshThreshold = 70;
+        document.addEventListener('touchstart', (e) => touchStart = e.targetTouches[0].pageY);
         document.addEventListener('touchmove', (e) => {
-            const touchMove = e.targetTouches[0].pageY;
-            const pullDistance = touchMove - touchStart;
-
-            // 화면 최상단에서 아래로 당길 때만 작동
+            const pullDistance = e.targetTouches[0].pageY - touchStart;
             if (window.scrollY === 0 && pullDistance > 0) {
-                const pullEl = document.getElementById('pull-to-refresh');
-                const loader = document.getElementById('loader');
-                
-                pullEl.style.transform = `translateY(${Math.min(pullDistance, 100)}px)`;
-                loader.style.display = 'block';
-                
-                if (pullDistance > refreshThreshold) {
-                    loader.style.borderColor = 'var(--accent-color)';
-                }
+                document.getElementById('pull-to-refresh').style.transform = `translateY(${Math.min(pullDistance, 80)}px)`;
+                document.getElementById('loader').style.display = 'block';
             }
         });
-
         document.addEventListener('touchend', (e) => {
-            touchEnd = e.changedTouches[0].pageY;
-            const pullDistance = touchEnd - touchStart;
-
-            if (window.scrollY === 0 && pullDistance > refreshThreshold) {
-                // 실제로 새로고침 실행
-                location.reload();
-            } else {
-                // 복귀
-                const pullEl = document.getElementById('pull-to-refresh');
-                const loader = document.getElementById('loader');
-                pullEl.style.transform = 'translateY(0)';
-                setTimeout(() => { loader.style.display = 'none'; }, 200);
+            if (window.scrollY === 0 && (e.changedTouches[0].pageY - touchStart) > refreshThreshold) location.reload();
+            else {
+                document.getElementById('pull-to-refresh').style.transform = 'translateY(0)';
+                setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 200);
             }
         });
 
@@ -217,7 +272,7 @@
                 const response = await fetch('https://api.ipify.org?format=json');
                 const data = await response.json();
                 document.getElementById('user-ip').textContent = data.ip;
-            } catch (error) { document.getElementById('user-ip').textContent = "연결 오류"; }
+            } catch (error) { document.getElementById('user-ip').textContent = "Error"; }
         }
         getIP();
 
@@ -228,16 +283,15 @@
                 });
                 const data = await response.json();
                 const addr = data.address;
-                const city = addr.city || addr.town || addr.village || addr.county || "알 수 없음";
+                const city = addr.city || addr.town || addr.village || addr.county || "";
                 const province = addr.province || addr.city_district || "";
                 document.getElementById('location').textContent = `${province} ${city}`.trim();
-            } catch (error) { document.getElementById('location').textContent = "지역명 탐색 실패"; }
+            } catch (error) { document.getElementById('location').textContent = "위치 확인 불가"; }
         }
 
         function getLocation() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((p) => getAddress(p.coords.latitude, p.coords.longitude), 
-                () => document.getElementById('location').textContent = "위치 권한 거부됨");
+                navigator.geolocation.getCurrentPosition((p) => getAddress(p.coords.latitude, p.coords.longitude));
             }
         }
         getLocation();
@@ -247,12 +301,11 @@
             let hours = now.getHours();
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const secondsVal = now.getSeconds();
-            const secondsStr = String(secondsVal).padStart(2, '0');
             document.getElementById('ampm').textContent = hours >= 12 ? '오후' : '오전';
             hours = hours % 12 || 12; 
             document.getElementById('time-hm').textContent = `${hours}:${minutes}:`;
             const secElem = document.getElementById('seconds');
-            secElem.textContent = secondsStr;
+            secElem.textContent = String(secondsVal).padStart(2, '0');
 
             if (secondsVal >= 50) {
                 const redness = Math.floor((secondsVal - 49) * 25.5); 
@@ -275,10 +328,9 @@
         function calculate() {
             const r = parseFloat(document.getElementById('ratio').value) || 0;
             const w = parseFloat(document.getElementById('water').value) || 0;
-            const hint = document.getElementById('literHint');
-            if (w > 0) hint.textContent = `(= ${(w/1000).toFixed(1).replace('.0','')} 리터)`;
             const res = r > 0 && w > 0 ? (w / r).toFixed(1).replace('.0','') : '0';
             document.getElementById('chemOut').innerHTML = res + '<span>ml</span>';
+            if (w > 0) document.getElementById('literHint').textContent = `(= ${(w/1000).toFixed(1).replace('.0','')}L)`;
         }
         calculate();
     </script>
