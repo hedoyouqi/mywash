@@ -41,11 +41,19 @@
   <img src="https://img.shields.io/badge/Web_Crawler-44B78B?style=for-the-badge&logo=python&logoColor=white">
 </p>
 
-### Tools & Devices
+### Tools & Environment
 <p>
-  <img src="https://img.shields.io/badge/Galaxy_A23-3E8EDE?style=for-the-badge&logo=samsung&logoColor=white">
+  <img src="https://img.shields.io/badge/Windows_10-0078D6?style=for-the-badge&logo=windows-10&logoColor=white">
+  <img src="https://img.shields.io/badge/iPhone_16_Pro-000000?style=for-the-badge&logo=apple&logoColor=white">
   <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white">
-  <img src="https://img.shields.io/badge/TradingView_API-131722?style=for-the-badge&logo=tradingview&logoColor=white">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white">
+</p>
+
+### Daily Life Infrastructure
+<p>
+  <img src="https://img.shields.io/badge/McDonald's-FBC02D?style=for-the-badge&logo=mcdonalds&logoColor=red">
+  <img src="https://img.shields.io/badge/Burger_King-D62300?style=for-the-badge&logo=burger-king&logoColor=white">
+  <img src="https://img.shields.io/badge/CU_Convenience-652D90?style=for-the-badge&logo=cu&logoColor=white">
 </p>
 
 
