@@ -16,9 +16,6 @@
             --card-bg: #ffffff;
             --text-color: #2d3436;
             --accent-color: #007aff;
-            --gas-premium: #a29bfe;
-            --gas-gasoline: #FF9500;
-            --gas-diesel: #636e72;
             --input-bg: #f8f9fa;
             --clock-gradient: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
         }
@@ -77,28 +74,13 @@
 
         h2 { margin-top: 0; font-size: 1.3rem; color: var(--accent-color); margin-bottom: 20px; opacity: 0.9; }
 
-        .weather-status { font-size: 2.5rem; display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+        .weather-status { font-size: 2.5rem; display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .weather-text { font-size: 1.5rem; font-weight: bold; }
 
         .weather-info div { 
-            margin: 12px 0; font-size: 1.1rem; display: flex; 
-            justify-content: space-between; border-bottom: 1px solid rgba(128,128,128,0.05); padding-bottom: 10px; 
+            margin: 15px 0; font-size: 1.2rem; display: flex; 
+            justify-content: space-between; border-bottom: 1px solid rgba(128,128,128,0.05); padding-bottom: 12px; 
         }
-
-        .gas-price-box { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
-        .gas-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 22px; border-radius: 20px; background: var(--input-bg);
-            border-left: 6px solid #ccc;
-        }
-        .gas-item.premium { border-left-color: var(--gas-premium); }
-        .gas-item.gasoline { border-left-color: var(--gas-gasoline); }
-        .gas-item.diesel { border-left-color: var(--gas-diesel); }
-
-        .gas-info-text { display: flex; flex-direction: column; gap: 2px; }
-        .gas-label { font-size: 0.8rem; opacity: 0.5; }
-        .gas-station { font-size: 0.9rem; font-weight: bold; opacity: 0.8; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .gas-val { font-size: 1.4rem; font-weight: 900; color: var(--text-color); }
 
         .result-display { 
             margin-top: 10px; padding: 25px; background: var(--accent-color); 
@@ -112,7 +94,7 @@
 <body oncontextmenu="return false">
 
     <header>
-        <div class="user-info">IP: <span id="user-ip">확인 중...</span></div>
+        <div class="user-info">IP: <span id="user-ip">...</span></div>
         <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
     </header>
 
@@ -136,30 +118,14 @@
             <h2>📍 실시간 날씨</h2>
             <div class="weather-status">
                 <span id="weather-icon">🌡️</span>
-                <span class="weather-text" id="weather-desc">데이터 확인 중</span>
+                <span class="weather-text" id="weather-desc">로딩 중</span>
             </div>
             <div class="weather-info">
-                <div><span>현재 위치</span><span id="location" style="font-weight: bold;">구미시</span></div>
+                <div><span>현재 위치</span><span id="location" style="font-weight: bold;">탐색 중</span></div>
                 <div><span>🌡️ 온도/습도</span><span><span id="temp">--</span>°C / <span id="humidity">--</span>%</span></div>
                 <div style="color: #00c7be;"><span>🌱 이슬점</span><span><span id="dewpoint">--</span>°C</span></div>
                 <div><span>🌬️ 풍속</span><span><span id="wind">--</span> m/s</span></div>
                 <div><span>🌫️ 미세먼지</span><span style="font-weight: bold; color: #34C759;">좋음</span></div>
-            </div>
-            
-            <h2 style="margin-top: 30px; margin-bottom: 15px;">⛽ 구미시 최저가 정보</h2>
-            <div class="gas-price-box">
-                <div class="gas-item premium">
-                    <div class="gas-info-text"><span class="gas-label">고급휘발유</span><span class="gas-station" id="name-B034">데이터 확인 중</span></div>
-                    <span class="gas-val" id="price-B034">--원</span>
-                </div>
-                <div class="gas-item gasoline">
-                    <div class="gas-info-text"><span class="gas-label">휘발유</span><span class="gas-station" id="name-B027">데이터 확인 중</span></div>
-                    <span class="gas-val" id="price-B027" style="color:var(--gas-gasoline)">--원</span>
-                </div>
-                <div class="gas-item diesel">
-                    <div class="gas-info-text"><span class="gas-label">경유</span><span class="gas-station" id="name-D047">데이터 확인 중</span></div>
-                    <span class="gas-val" id="price-D047">--원</span>
-                </div>
             </div>
         </div>
 
@@ -182,32 +148,11 @@
     </main>
 
     <script>
-        const OPINET_KEY = 'b240414745'; 
-        const GUMI_CODE = '0819'; 
-        const PROXY = 'https://api.allorigins.win/get?url=';
-
         const weatherCodes = {
             0: ["☀️", "맑음"], 1: ["🌤️", "대체로 맑음"], 2: ["⛅", "구름 조금"], 3: ["☁️", "흐림"],
             45: ["🌫️", "안개"], 48: ["🌫️", "짙은 안개"], 51: ["🌦️", "약한 이슬비"], 61: ["🌧️", "비"],
             71: ["❄️", "눈"], 95: ["⚡", "천둥번개"]
         };
-
-        async function fetchGasData(prod) {
-            const api = `http://www.opinet.co.kr/api/lowTop10.do?code=${OPINET_KEY}&area=${GUMI_CODE}&prodcd=${prod}&out=json`;
-            try {
-                const response = await fetch(`${PROXY}${encodeURIComponent(api)}`);
-                const json = await response.json();
-                const data = JSON.parse(json.contents);
-                const info = data.RESULT.OIL[0];
-                
-                if(info) {
-                    document.getElementById(`price-${prod}`).textContent = parseInt(info.PRICE).toLocaleString() + '원';
-                    document.getElementById(`name-${prod}`).textContent = info.OS_NM;
-                }
-            } catch (e) {
-                // 실패 시 재시도 또는 대기 상태 유지
-            }
-        }
 
         async function getWeatherData(lat, lon) {
             try {
@@ -238,7 +183,6 @@
 
         function manualRefresh() {
             getIP(); getLocation();
-            ['B034', 'B027', 'D047'].forEach(p => fetchGasData(p));
         }
 
         function getLocation() { 
@@ -280,7 +224,6 @@
         }
 
         getIP(); getLocation(); updateTime(); calculate();
-        ['B034', 'B027', 'D047'].forEach(p => fetchGasData(p));
         setInterval(updateTime, 1000);
     </script>
 </body>
