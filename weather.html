@@ -199,11 +199,10 @@
     </main>
 
     <script>
-        // --- 오피넷 API 연동 로직 ---
-        const OPINET_KEY = 'b240414745'; // 사용자님이 주셨던 키 적용
-        const PROXY = 'https://cors-anywhere.herokuapp.com/';
+        // --- 오피넷 API 연동 로직 (allorigins 프록시 적용) ---
+        const OPINET_KEY = 'b240414745'; 
+        const PROXY_BASE = 'https://api.allorigins.win/get?url=';
 
-        // 시군구 데이터 로드 (오피넷 API AreaCode 기준)
         async function loadSigungu() {
             const sido = document.getElementById('sido').value;
             const sigunguSelect = document.getElementById('sigungu');
@@ -211,15 +210,22 @@
             
             if(!sido) { sigunguSelect.innerHTML = '<option value="">시/군/구</option>'; return; }
 
+            const targetUrl = `http://www.opinet.co.kr/api/areaCode.do?code=${OPINET_KEY}&area=${sido}&out=json`;
+            
             try {
-                const res = await fetch(`${PROXY}http://www.opinet.co.kr/api/areaCode.do?code=${OPINET_KEY}&area=${sido}&out=json`);
-                const data = await res.json();
+                const res = await fetch(`${PROXY_BASE}${encodeURIComponent(targetUrl)}`);
+                const json = await res.json();
+                const data = JSON.parse(json.contents);
+
                 let html = '<option value="">시/군/구 선택</option>';
                 data.RESULT.AREA.forEach(a => {
                     html += `<option value="${a.AREA_CD}">${a.AREA_NM}</option>`;
                 });
                 sigunguSelect.innerHTML = html;
-            } catch (e) { sigunguSelect.innerHTML = '<option value="">오류 발생</option>'; }
+            } catch (e) { 
+                console.error(e);
+                sigunguSelect.innerHTML = '<option value="">데이터 오류</option>'; 
+            }
         }
 
         async function fetchGasPrices() {
@@ -228,10 +234,12 @@
             const listDiv = document.getElementById('gas-list');
             listDiv.innerHTML = '<div class="gas-item"><span class="gas-label">최저가 검색 중...</span></div>';
 
+            const targetUrl = `http://www.opinet.co.kr/api/lowTop10.do?code=${OPINET_KEY}&area=${area}&prodcd=B027&out=json`;
+
             try {
-                // 휘발유(B027) 기준 최저가 상위 3개 호출
-                const res = await fetch(`${PROXY}http://www.opinet.co.kr/api/lowTop10.do?code=${OPINET_KEY}&area=${area}&prodcd=B027&out=json`);
-                const data = await res.json();
+                const res = await fetch(`${PROXY_BASE}${encodeURIComponent(targetUrl)}`);
+                const json = await res.json();
+                const data = JSON.parse(json.contents);
                 const items = data.RESULT.OIL.slice(0, 3);
 
                 listDiv.innerHTML = items.map((o, i) => `
@@ -244,11 +252,11 @@
                     </div>
                 `).join('');
             } catch (e) {
-                listDiv.innerHTML = '<div class="gas-item"><span class="gas-label" style="color:red;">데이터 로드 실패. 프록시 서버를 확인하세요.</span></div>';
+                listDiv.innerHTML = '<div class="gas-item"><span class="gas-label" style="color:red;">정보를 불러올 수 없습니다.</span></div>';
             }
         }
 
-        // --- 기존 기능 유지 ---
+        // --- 공통 기능 ---
         let currentCity = ""; let currentDistrict = "";
         function triggerHaptic() { if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(20); }
 
