@@ -16,7 +16,9 @@
             --card-bg: #ffffff;
             --text-color: #2d3436;
             --accent-color: #007aff;
+            --gas-premium: #a29bfe;
             --gas-gasoline: #FF9500;
+            --gas-diesel: #636e72;
             --input-bg: #f8f9fa;
             --clock-gradient: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
         }
@@ -83,16 +85,20 @@
             justify-content: space-between; border-bottom: 1px solid rgba(128,128,128,0.05); padding-bottom: 12px; 
         }
 
-        .gas-price-box { display: flex; flex-direction: column; gap: 12px; margin-top: 5px; }
+        .gas-price-box { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
         .gas-item {
-            display: flex; flex-direction: column; gap: 6px;
-            padding: 16px 20px; border-radius: 22px; background: var(--input-bg);
-            border-left: 6px solid var(--gas-gasoline);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 22px; border-radius: 20px; background: var(--input-bg);
+            border-left: 6px solid #ccc;
         }
-        .gas-meta { display: flex; justify-content: space-between; align-items: baseline; }
-        .gas-label { font-size: 0.8rem; opacity: 0.5; display: block; margin-top: 2px; }
-        .gas-name { font-weight: bold; font-size: 1.05rem; color: var(--text-color); }
-        .gas-val { font-size: 1.5rem; font-weight: 900; letter-spacing: -1px; color: var(--gas-gasoline); }
+        .gas-item.premium { border-left-color: var(--gas-premium); }
+        .gas-item.gasoline { border-left-color: var(--gas-gasoline); }
+        .gas-item.diesel { border-left-color: var(--gas-diesel); }
+
+        .gas-info-text { display: flex; flex-direction: column; gap: 2px; }
+        .gas-label { font-size: 0.8rem; opacity: 0.5; }
+        .gas-station { font-size: 0.9rem; font-weight: bold; opacity: 0.8; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .gas-val { font-size: 1.4rem; font-weight: 900; color: var(--text-color); }
 
         .result-display { 
             margin-top: 10px; padding: 25px; background: var(--accent-color); 
@@ -136,9 +142,20 @@
                 <div><span>🌫️ 미세먼지</span><span style="font-weight: bold; color: #34C759;">좋음</span></div>
             </div>
             
-            <h2 style="margin-top: 30px; margin-bottom: 15px;">⛽ 주변 휘발유 최저가 (자동)</h2>
+            <h2 style="margin-top: 30px; margin-bottom: 15px;">⛽ 구미시 최저가 정보</h2>
             <div class="gas-price-box" id="gas-list">
-                <div class="gas-item"><span class="gas-label">위치 기반 검색 중...</span></div>
+                <div class="gas-item premium">
+                    <div class="gas-info-text"><span class="gas-label">고급휘발유</span><span class="gas-station" id="name-B034">불러오는 중..</span></div>
+                    <span class="gas-val" id="price-B034">--원</span>
+                </div>
+                <div class="gas-item gasoline">
+                    <div class="gas-info-text"><span class="gas-label">휘발유</span><span class="gas-station" id="name-B027">불러오는 중..</span></div>
+                    <span class="gas-val" id="price-B027" style="color:var(--gas-gasoline)">--원</span>
+                </div>
+                <div class="gas-item diesel">
+                    <div class="gas-info-text"><span class="gas-label">경유</span><span class="gas-station" id="name-D047">불러오는 중..</span></div>
+                    <span class="gas-val" id="price-D047">--원</span>
+                </div>
             </div>
         </div>
 
@@ -163,39 +180,19 @@
     <script>
         const OPINET_KEY = 'b240414745'; 
         const PROXY_BASE = 'https://api.allorigins.win/get?url=';
+        const GUMI_CODE = '0819'; // 구미시 지역코드
 
-        async function fetchAutoGasPrices(city, district) {
-            const listDiv = document.getElementById('gas-list');
+        async function fetchGumiGas(prodCode) {
+            const url = `http://www.opinet.co.kr/api/lowTop10.do?code=${OPINET_KEY}&area=${GUMI_CODE}&prodcd=${prodCode}&out=json`;
             try {
-                const sidoMap = {"서울": "01", "경기": "02", "강원": "03", "충북": "04", "충남": "05", "전북": "06", "전남": "07", "경북": "08", "경남": "09", "제주": "10", "부산": "11", "대구": "12", "인천": "13", "광주": "14", "대전": "15", "울산": "16", "세종": "17"};
-                const sidoCode = sidoMap[city.substring(0, 2)];
-                if (!sidoCode) return;
-
-                const areaUrl = `http://www.opinet.co.kr/api/areaCode.do?code=${OPINET_KEY}&area=${sidoCode}&out=json`;
-                const areaRes = await fetch(`${PROXY_BASE}${encodeURIComponent(areaUrl)}`);
-                const areaJson = await areaRes.json();
-                const areaData = JSON.parse(areaJson.contents);
-                
-                const targetArea = areaData.RESULT.AREA.find(a => district.includes(a.AREA_NM)) || areaData.RESULT.AREA[0];
-                const areaCode = targetArea.AREA_CD;
-
-                const gasUrl = `http://www.opinet.co.kr/api/lowTop10.do?code=${OPINET_KEY}&area=${areaCode}&prodcd=B027&out=json`;
-                const gasRes = await fetch(`${PROXY_BASE}${encodeURIComponent(gasUrl)}`);
-                const gasJson = await gasRes.json();
-                const gasData = JSON.parse(gasJson.contents);
-                const items = gasData.RESULT.OIL.slice(0, 3);
-
-                listDiv.innerHTML = items.map((o, i) => `
-                    <div class="gas-item" style="border-left-color: ${i===0 ? '#FFD700' : 'var(--gas-gasoline)'}">
-                        <div class="gas-meta">
-                            <span class="gas-name">${o.OS_NM}</span>
-                            <span class="gas-val">${parseInt(o.PRICE).toLocaleString()}원</span>
-                        </div>
-                        <span class="gas-label">${o.VAN_ADR}</span>
-                    </div>
-                `).join('');
+                const res = await fetch(`${PROXY_BASE}${encodeURIComponent(url)}`);
+                const json = await res.json();
+                const data = JSON.parse(json.contents);
+                const best = data.RESULT.OIL[0];
+                document.getElementById(`price-${prodCode}`).textContent = parseInt(best.PRICE).toLocaleString() + '원';
+                document.getElementById(`name-${prodCode}`).textContent = best.OS_NM;
             } catch (e) {
-                listDiv.innerHTML = '<div class="gas-item"><span class="gas-label">유가 로드 실패</span></div>';
+                document.getElementById(`price-${prodCode}`).textContent = '오류';
             }
         }
 
@@ -214,21 +211,20 @@
                 document.getElementById('dewpoint').textContent = Math.round(w.current.dew_point_2m);
                 document.getElementById('wind').textContent = (w.current.wind_speed_10m / 3.6).toFixed(1);
                 document.getElementById('last-update').textContent = `갱신: ${new Date().toLocaleTimeString('ko-KR')}`;
-
-                fetchAutoGasPrices(city, district);
             } catch (e) { document.getElementById('location').textContent = "위치 확인 실패"; }
+        }
+
+        function manualRefresh() {
+            document.getElementById('refresh-icon').classList.add('refreshing');
+            getIP(); getLocation(); 
+            ['B034', 'B027', 'D047'].forEach(code => fetchGumiGas(code));
+            setTimeout(() => document.getElementById('refresh-icon').classList.remove('refreshing'), 800);
         }
 
         function getLocation() { 
             if (navigator.geolocation) { 
                 navigator.geolocation.getCurrentPosition(p => getAddress(p.coords.latitude, p.coords.longitude)); 
             } 
-        }
-
-        function manualRefresh() {
-            document.getElementById('refresh-icon').classList.add('refreshing');
-            getIP(); getLocation();
-            setTimeout(() => { document.getElementById('refresh-icon').classList.remove('refreshing'); }, 800);
         }
 
         async function getIP() {
@@ -260,8 +256,9 @@
             document.getElementById('chemOut').innerHTML = (r > 0 && w > 0 ? (w / r).toFixed(1).replace('.0','') : '0') + '<span>ml</span>';
         }
 
-        getIP(); getLocation();
-        setInterval(updateTime, 1000); updateTime(); calculate();
+        getIP(); getLocation(); updateTime(); calculate();
+        ['B034', 'B027', 'D047'].forEach(code => fetchGumiGas(code));
+        setInterval(updateTime, 1000);
     </script>
 </body>
 </html>
