@@ -36,7 +36,7 @@
             font-family: 'MyCustomFont', -apple-system, sans-serif !important;
         }
 
-        input, select { -webkit-user-select: auto !important; user-select: auto !important; }
+        input { -webkit-user-select: auto !important; user-select: auto !important; }
 
         body {
             background-color: var(--bg-color); color: var(--text-color);
@@ -72,7 +72,6 @@
             background: none; border: none; font-size: 1.1rem; cursor: pointer;
             color: var(--accent-color); padding: 5px; opacity: 0.8;
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            -webkit-tap-highlight-color: transparent;
         }
         .refreshing { animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -82,13 +81,6 @@
         .weather-info div { 
             margin: 15px 0; font-size: 1.2rem; display: flex; 
             justify-content: space-between; border-bottom: 1px solid rgba(128,128,128,0.05); padding-bottom: 12px; 
-        }
-
-        .gas-select-row { display: flex; gap: 8px; margin-bottom: 15px; }
-        .select-custom {
-            flex: 1; padding: 15px; border-radius: 18px; border: none;
-            background: var(--input-bg); color: var(--text-color); font-size: 0.95rem;
-            outline: none; cursor: pointer; border: 1px solid rgba(0,0,0,0.03);
         }
 
         .gas-price-box { display: flex; flex-direction: column; gap: 12px; margin-top: 5px; }
@@ -101,13 +93,6 @@
         .gas-label { font-size: 0.8rem; opacity: 0.5; display: block; margin-top: 2px; }
         .gas-name { font-weight: bold; font-size: 1.05rem; color: var(--text-color); }
         .gas-val { font-size: 1.5rem; font-weight: 900; letter-spacing: -1px; color: var(--gas-gasoline); }
-
-        .gas-btn-now {
-            width: 100%; margin-top: 15px; padding: 18px; border-radius: 20px; border: none;
-            background: #222; color: #fff; font-size: 1rem; font-weight: bold;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            cursor: pointer; -webkit-tap-highlight-color: transparent;
-        }
 
         .result-display { 
             margin-top: 10px; padding: 25px; background: var(--accent-color); 
@@ -142,42 +127,17 @@
                 <span class="update-time" id="last-update">방금 전</span>
                 <button class="refresh-btn" onclick="manualRefresh()" id="refresh-icon">🔄</button>
             </div>
-            <h2>📍 실시간 날씨 </h2>
+            <h2>📍 실시간 날씨 및 유가</h2>
             <div class="weather-info">
                 <div><span>현재 위치</span><span id="location" style="text-align: right; opacity: 0.8; font-weight: bold;">탐색 중...</span></div>
                 <div><span>🌡️ 온도/습도</span><span><span id="temp">--</span>°C / <span id="humidity">--</span>%</span></div>
-                <div style="color: #00c7be;"><span>🌱 이슬점</span><span><span id="dewpoint">--</span>°C</span></div>
-                <div><span>🌬️ 풍속</span><span><span id="wind">--</span> m/s</span></div>
-                <div><span>🌫️ 미세먼지</span><span style="font-weight: bold; color: #34C759;">좋음</span></div>
+                <div style="color: #00c7be;"><span>🌬️ 풍속</span><span><span id="wind">--</span> m/s</span></div>
             </div>
             
-            <h2 style="margin-top: 30px; margin-bottom: 10px;">📊 주변 휘발유 최저가</h2>
-            
-            <div class="gas-select-row">
-                <select id="sido" class="select-custom" onchange="loadSigungu()">
-                    <option value="">시/도 선택</option>
-                    <option value="01">서울</option><option value="02">경기</option>
-                    <option value="03">강원</option><option value="04">충북</option>
-                    <option value="05">충남</option><option value="06">전북</option>
-                    <option value="07">전남</option><option value="08">경북</option>
-                    <option value="09">경남</option><option value="10">제주</option>
-                    <option value="11">부산</option><option value="12">대구</option>
-                    <option value="13">인천</option><option value="14">광주</option>
-                    <option value="15">대전</option><option value="16">울산</option>
-                    <option value="17">세종</option>
-                </select>
-                <select id="sigungu" class="select-custom" onchange="fetchGasPrices()">
-                    <option value="">시/군/구</option>
-                </select>
-            </div>
-
+            <h2 style="margin-top: 30px; margin-bottom: 15px;">⛽ 내 주변 휘발유 최저가</h2>
             <div class="gas-price-box" id="gas-list">
-                <div class="gas-item"><span class="gas-label">지역을 선택해 주세요.</span></div>
+                <div class="gas-item"><span class="gas-label">위치를 확인하고 있습니다...</span></div>
             </div>
-
-            <button class="gas-btn-now" onclick="openOilNow()">
-                <span>🔍</span> 오일나우 실시간 가격 비교
-            </button>
         </div>
 
         <div class="card">
@@ -199,48 +159,36 @@
     </main>
 
     <script>
-        // --- 오피넷 API 연동 로직 (allorigins 프록시 적용) ---
         const OPINET_KEY = 'b240414745'; 
         const PROXY_BASE = 'https://api.allorigins.win/get?url=';
 
-        async function loadSigungu() {
-            const sido = document.getElementById('sido').value;
-            const sigunguSelect = document.getElementById('sigungu');
-            sigunguSelect.innerHTML = '<option value="">불러오는 중...</option>';
-            
-            if(!sido) { sigunguSelect.innerHTML = '<option value="">시/군/구</option>'; return; }
+        // 1. 위도/경도를 오피넷 KATECH 좌표계로 변환하는 대신, 
+        // 2. 주소 정보를 기반으로 시군구 코드를 찾아 최저가를 가져오는 방식이 가장 정확합니다.
 
-            const targetUrl = `http://www.opinet.co.kr/api/areaCode.do?code=${OPINET_KEY}&area=${sido}&out=json`;
-            
-            try {
-                const res = await fetch(`${PROXY_BASE}${encodeURIComponent(targetUrl)}`);
-                const json = await res.json();
-                const data = JSON.parse(json.contents);
-
-                let html = '<option value="">시/군/구 선택</option>';
-                data.RESULT.AREA.forEach(a => {
-                    html += `<option value="${a.AREA_CD}">${a.AREA_NM}</option>`;
-                });
-                sigunguSelect.innerHTML = html;
-            } catch (e) { 
-                console.error(e);
-                sigunguSelect.innerHTML = '<option value="">데이터 오류</option>'; 
-            }
-        }
-
-        async function fetchGasPrices() {
-            const area = document.getElementById('sigungu').value;
-            if(!area) return;
+        async function fetchAutoGasPrices(city, district) {
             const listDiv = document.getElementById('gas-list');
-            listDiv.innerHTML = '<div class="gas-item"><span class="gas-label">최저가 검색 중...</span></div>';
-
-            const targetUrl = `http://www.opinet.co.kr/api/lowTop10.do?code=${OPINET_KEY}&area=${area}&prodcd=B027&out=json`;
-
             try {
-                const res = await fetch(`${PROXY_BASE}${encodeURIComponent(targetUrl)}`);
-                const json = await res.json();
-                const data = JSON.parse(json.contents);
-                const items = data.RESULT.OIL.slice(0, 3);
+                // 시도 코드 매핑
+                const sidoMap = {"서울": "01", "경기": "02", "강원": "03", "충북": "04", "충남": "05", "전북": "06", "전남": "07", "경북": "08", "경남": "09", "제주": "10", "부산": "11", "대구": "12", "인천": "13", "광주": "14", "대전": "15", "울산": "16", "세종": "17"};
+                const sidoCode = sidoMap[city.substring(0, 2)];
+                
+                if (!sidoCode) throw new Error("지역 코드를 찾을 수 없음");
+
+                // 1. 해당 시도의 시군구 목록 호출하여 현재 구(District)에 맞는 코드 찾기
+                const areaUrl = `http://www.opinet.co.kr/api/areaCode.do?code=${OPINET_KEY}&area=${sidoCode}&out=json`;
+                const areaRes = await fetch(`${PROXY_BASE}${encodeURIComponent(areaUrl)}`);
+                const areaJson = await areaRes.json();
+                const areaData = JSON.parse(areaJson.contents);
+                
+                const targetArea = areaData.RESULT.AREA.find(a => district.includes(a.AREA_NM)) || areaData.RESULT.AREA[0];
+                const areaCode = targetArea.AREA_CD;
+
+                // 2. 해당 지역 최저가 호출
+                const gasUrl = `http://www.opinet.co.kr/api/lowTop10.do?code=${OPINET_KEY}&area=${areaCode}&prodcd=B027&out=json`;
+                const gasRes = await fetch(`${PROXY_BASE}${encodeURIComponent(gasUrl)}`);
+                const gasJson = await gasRes.json();
+                const gasData = JSON.parse(gasJson.contents);
+                const items = gasData.RESULT.OIL.slice(0, 3);
 
                 listDiv.innerHTML = items.map((o, i) => `
                     <div class="gas-item" style="border-left-color: ${i===0 ? '#FFD700' : 'var(--gas-gasoline)'}">
@@ -252,25 +200,43 @@
                     </div>
                 `).join('');
             } catch (e) {
-                listDiv.innerHTML = '<div class="gas-item"><span class="gas-label" style="color:red;">정보를 불러올 수 없습니다.</span></div>';
+                listDiv.innerHTML = '<div class="gas-item"><span class="gas-label">주변 유가 정보를 불러올 수 없습니다.</span></div>';
             }
         }
 
-        // --- 공통 기능 ---
-        let currentCity = ""; let currentDistrict = "";
-        function triggerHaptic() { if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(20); }
+        async function getAddress(lat, lon) {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`, {headers:{'Accept-Language':'ko'}});
+                const data = await res.json();
+                const city = data.address.city || data.address.province || data.address.metropolitan || "";
+                const district = data.address.city_district || data.address.borough || data.address.county || "";
+                
+                document.getElementById('location').textContent = `${city} ${district}`;
+                
+                // 날씨 정보
+                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=auto`);
+                const w = await weatherRes.json();
+                document.getElementById('temp').textContent = Math.round(w.current.temperature_2m);
+                document.getElementById('humidity').textContent = w.current.relative_humidity_2m;
+                document.getElementById('wind').textContent = (w.current.wind_speed_10m / 3.6).toFixed(1);
+                document.getElementById('last-update').textContent = `갱신: ${new Date().toLocaleTimeString('ko-KR')}`;
+
+                // 날씨 위치 기반 유가 정보 자동 호출
+                fetchAutoGasPrices(city, district);
+                
+            } catch (e) { document.getElementById('location').textContent = "위치 확인 실패"; }
+        }
+
+        function getLocation() { 
+            if (navigator.geolocation) { 
+                navigator.geolocation.getCurrentPosition(p => getAddress(p.coords.latitude, p.coords.longitude)); 
+            } 
+        }
 
         function manualRefresh() {
-            triggerHaptic();
             document.getElementById('refresh-icon').classList.add('refreshing');
             getIP(); getLocation();
             setTimeout(() => { document.getElementById('refresh-icon').classList.remove('refreshing'); }, 800);
-        }
-
-        function openOilNow() {
-            triggerHaptic();
-            const searchTag = currentCity ? `${currentCity}-${currentDistrict}`.replace(/\s+/g, '') : '';
-            window.open(`https://www.oilnow.co.kr/gas-station-price-comparison/gasoline/${searchTag}`);
         }
 
         async function getIP() {
@@ -280,32 +246,6 @@
                 document.getElementById('user-ip').textContent = data.split('\n').find(l => l.startsWith('ip=')).split('=')[1];
             } catch (e) { document.getElementById('user-ip').textContent = "확인 불가"; }
         }
-        getIP();
-
-        async function getAddress(lat, lon) {
-            try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`, {headers:{'Accept-Language':'ko'}});
-                const data = await res.json();
-                currentCity = data.address.city || data.address.province || "";
-                currentDistrict = data.address.city_district || data.address.borough || "";
-                document.getElementById('location').textContent = currentDistrict ? `${currentCity} ${currentDistrict}` : currentCity;
-                
-                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,dew_point_2m&timezone=auto`);
-                const w = await weatherRes.json();
-                document.getElementById('temp').textContent = Math.round(w.current.temperature_2m);
-                document.getElementById('humidity').textContent = w.current.relative_humidity_2m;
-                document.getElementById('dewpoint').textContent = Math.round(w.current.dew_point_2m);
-                document.getElementById('wind').textContent = (w.current.wind_speed_10m / 3.6).toFixed(1);
-                document.getElementById('last-update').textContent = `갱신: ${new Date().toLocaleTimeString('ko-KR')}`;
-            } catch (e) { document.getElementById('location').textContent = "위치 확인 실패"; }
-        }
-
-        function getLocation() { 
-            if (navigator.geolocation) { 
-                navigator.geolocation.getCurrentPosition(p => getAddress(p.coords.latitude, p.coords.longitude)); 
-            } 
-        }
-        getLocation();
 
         function updateTime() {
             const now = new Date();
@@ -317,11 +257,9 @@
             document.getElementById('seconds').textContent = String(now.getSeconds()).padStart(2, '0');
             document.getElementById('date').textContent = now.toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric', weekday:'long'});
         }
-        setInterval(updateTime, 1000); updateTime();
 
         function toggleTheme() {
             document.body.hasAttribute('data-theme') ? document.body.removeAttribute('data-theme') : document.body.setAttribute('data-theme', 'dark');
-            triggerHaptic();
         }
 
         function calculate() {
@@ -329,6 +267,12 @@
             const w = parseFloat(document.getElementById('water').value) || 0;
             document.getElementById('chemOut').innerHTML = (r > 0 && w > 0 ? (w / r).toFixed(1).replace('.0','') : '0') + '<span>ml</span>';
         }
+
+        // 초기화
+        getIP();
+        getLocation();
+        setInterval(updateTime, 1000);
+        updateTime();
         calculate();
     </script>
 </body>
