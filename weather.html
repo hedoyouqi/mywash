@@ -77,9 +77,12 @@
 
         h2 { margin-top: 0; font-size: 1.3rem; color: var(--accent-color); margin-bottom: 20px; opacity: 0.9; }
 
+        .weather-status { font-size: 2.5rem; display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+        .weather-text { font-size: 1.5rem; font-weight: bold; }
+
         .weather-info div { 
-            margin: 15px 0; font-size: 1.2rem; display: flex; 
-            justify-content: space-between; border-bottom: 1px solid rgba(128,128,128,0.05); padding-bottom: 12px; 
+            margin: 12px 0; font-size: 1.1rem; display: flex; 
+            justify-content: space-between; border-bottom: 1px solid rgba(128,128,128,0.05); padding-bottom: 10px; 
         }
 
         .gas-price-box { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
@@ -131,8 +134,12 @@
                 <button class="refresh-btn" onclick="manualRefresh()">🔄</button>
             </div>
             <h2>📍 실시간 날씨</h2>
+            <div class="weather-status">
+                <span id="weather-icon">🌡️</span>
+                <span class="weather-text" id="weather-desc">데이터 확인 중</span>
+            </div>
             <div class="weather-info">
-                <div><span>현재 위치</span><span id="location" style="text-align: right; opacity: 0.8; font-weight: bold;">구미시</span></div>
+                <div><span>현재 위치</span><span id="location" style="font-weight: bold;">구미시</span></div>
                 <div><span>🌡️ 온도/습도</span><span><span id="temp">--</span>°C / <span id="humidity">--</span>%</span></div>
                 <div style="color: #00c7be;"><span>🌱 이슬점</span><span><span id="dewpoint">--</span>°C</span></div>
                 <div><span>🌬️ 풍속</span><span><span id="wind">--</span> m/s</span></div>
@@ -142,15 +149,15 @@
             <h2 style="margin-top: 30px; margin-bottom: 15px;">⛽ 구미시 최저가 정보</h2>
             <div class="gas-price-box">
                 <div class="gas-item premium">
-                    <div class="gas-info-text"><span class="gas-label">고급휘발유</span><span class="gas-station" id="name-B034">데이터 로딩..</span></div>
+                    <div class="gas-info-text"><span class="gas-label">고급휘발유</span><span class="gas-station" id="name-B034">데이터 확인 중</span></div>
                     <span class="gas-val" id="price-B034">--원</span>
                 </div>
                 <div class="gas-item gasoline">
-                    <div class="gas-info-text"><span class="gas-label">휘발유</span><span class="gas-station" id="name-B027">데이터 로딩..</span></div>
+                    <div class="gas-info-text"><span class="gas-label">휘발유</span><span class="gas-station" id="name-B027">데이터 확인 중</span></div>
                     <span class="gas-val" id="price-B027" style="color:var(--gas-gasoline)">--원</span>
                 </div>
                 <div class="gas-item diesel">
-                    <div class="gas-info-text"><span class="gas-label">경유</span><span class="gas-station" id="name-D047">데이터 로딩..</span></div>
+                    <div class="gas-info-text"><span class="gas-label">경유</span><span class="gas-station" id="name-D047">데이터 확인 중</span></div>
                     <span class="gas-val" id="price-D047">--원</span>
                 </div>
             </div>
@@ -177,8 +184,13 @@
     <script>
         const OPINET_KEY = 'b240414745'; 
         const GUMI_CODE = '0819'; 
-        // 가장 안정적인 CORS 우회 서비스 사용
         const PROXY = 'https://api.allorigins.win/get?url=';
+
+        const weatherCodes = {
+            0: ["☀️", "맑음"], 1: ["🌤️", "대체로 맑음"], 2: ["⛅", "구름 조금"], 3: ["☁️", "흐림"],
+            45: ["🌫️", "안개"], 48: ["🌫️", "짙은 안개"], 51: ["🌦️", "약한 이슬비"], 61: ["🌧️", "비"],
+            71: ["❄️", "눈"], 95: ["⚡", "천둥번개"]
+        };
 
         async function fetchGasData(prod) {
             const api = `http://www.opinet.co.kr/api/lowTop10.do?code=${OPINET_KEY}&area=${GUMI_CODE}&prodcd=${prod}&out=json`;
@@ -188,28 +200,39 @@
                 const data = JSON.parse(json.contents);
                 const info = data.RESULT.OIL[0];
                 
-                document.getElementById(`price-${prod}`).textContent = parseInt(info.PRICE).toLocaleString() + '원';
-                document.getElementById(`name-${prod}`).textContent = info.OS_NM;
+                if(info) {
+                    document.getElementById(`price-${prod}`).textContent = parseInt(info.PRICE).toLocaleString() + '원';
+                    document.getElementById(`name-${prod}`).textContent = info.OS_NM;
+                }
             } catch (e) {
-                document.getElementById(`name-${prod}`).textContent = "일시적 오류";
+                // 실패 시 재시도 또는 대기 상태 유지
             }
+        }
+
+        async function getWeatherData(lat, lon) {
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,dew_point_2m,weather_code&timezone=auto`);
+                const w = await res.json();
+                
+                document.getElementById('temp').textContent = Math.round(w.current.temperature_2m);
+                document.getElementById('humidity').textContent = w.current.relative_humidity_2m;
+                document.getElementById('dewpoint').textContent = Math.round(w.current.dew_point_2m);
+                document.getElementById('wind').textContent = (w.current.wind_speed_10m / 3.6).toFixed(1);
+                
+                const code = w.current.weather_code;
+                const status = weatherCodes[code] || ["🌡️", "날씨 정보"];
+                document.getElementById('weather-icon').textContent = status[0];
+                document.getElementById('weather-desc').textContent = status[1];
+                
+                document.getElementById('last-update').textContent = `갱신: ${new Date().toLocaleTimeString('ko-KR')}`;
+            } catch (e) { }
         }
 
         async function getAddress(lat, lon) {
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`, {headers:{'Accept-Language':'ko'}});
                 const data = await res.json();
-                const city = data.address.city || data.address.province || "구미시";
-                const district = data.address.city_district || "";
-                document.getElementById('location').textContent = `${city} ${district}`;
-                
-                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,dew_point_2m&timezone=auto`);
-                const w = await weatherRes.json();
-                document.getElementById('temp').textContent = Math.round(w.current.temperature_2m);
-                document.getElementById('humidity').textContent = w.current.relative_humidity_2m;
-                document.getElementById('dewpoint').textContent = Math.round(w.current.dew_point_2m);
-                document.getElementById('wind').textContent = (w.current.wind_speed_10m / 3.6).toFixed(1);
-                document.getElementById('last-update').textContent = `갱신: ${new Date().toLocaleTimeString('ko-KR')}`;
+                document.getElementById('location').textContent = data.address.city || data.address.province || "구미시";
             } catch (e) { }
         }
 
@@ -220,7 +243,10 @@
 
         function getLocation() { 
             if (navigator.geolocation) { 
-                navigator.geolocation.getCurrentPosition(p => getAddress(p.coords.latitude, p.coords.longitude)); 
+                navigator.geolocation.getCurrentPosition(p => {
+                    getAddress(p.coords.latitude, p.coords.longitude);
+                    getWeatherData(p.coords.latitude, p.coords.longitude);
+                }); 
             } 
         }
 
