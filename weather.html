@@ -127,16 +127,18 @@
                 <span class="update-time" id="last-update">방금 전</span>
                 <button class="refresh-btn" onclick="manualRefresh()" id="refresh-icon">🔄</button>
             </div>
-            <h2>📍 실시간 날씨 및 유가</h2>
+            <h2>📍 실시간 날씨</h2>
             <div class="weather-info">
                 <div><span>현재 위치</span><span id="location" style="text-align: right; opacity: 0.8; font-weight: bold;">탐색 중...</span></div>
                 <div><span>🌡️ 온도/습도</span><span><span id="temp">--</span>°C / <span id="humidity">--</span>%</span></div>
-                <div style="color: #00c7be;"><span>🌬️ 풍속</span><span><span id="wind">--</span> m/s</span></div>
+                <div style="color: #00c7be;"><span>🌱 이슬점</span><span><span id="dewpoint">--</span>°C</span></div>
+                <div><span>🌬️ 풍속</span><span><span id="wind">--</span> m/s</span></div>
+                <div><span>🌫️ 미세먼지</span><span style="font-weight: bold; color: #34C759;">좋음</span></div>
             </div>
             
-            <h2 style="margin-top: 30px; margin-bottom: 15px;">⛽ 내 주변 휘발유 최저가</h2>
+            <h2 style="margin-top: 30px; margin-bottom: 15px;">⛽ 주변 휘발유 최저가 (자동)</h2>
             <div class="gas-price-box" id="gas-list">
-                <div class="gas-item"><span class="gas-label">위치를 확인하고 있습니다...</span></div>
+                <div class="gas-item"><span class="gas-label">위치 기반 검색 중...</span></div>
             </div>
         </div>
 
@@ -162,19 +164,13 @@
         const OPINET_KEY = 'b240414745'; 
         const PROXY_BASE = 'https://api.allorigins.win/get?url=';
 
-        // 1. 위도/경도를 오피넷 KATECH 좌표계로 변환하는 대신, 
-        // 2. 주소 정보를 기반으로 시군구 코드를 찾아 최저가를 가져오는 방식이 가장 정확합니다.
-
         async function fetchAutoGasPrices(city, district) {
             const listDiv = document.getElementById('gas-list');
             try {
-                // 시도 코드 매핑
                 const sidoMap = {"서울": "01", "경기": "02", "강원": "03", "충북": "04", "충남": "05", "전북": "06", "전남": "07", "경북": "08", "경남": "09", "제주": "10", "부산": "11", "대구": "12", "인천": "13", "광주": "14", "대전": "15", "울산": "16", "세종": "17"};
                 const sidoCode = sidoMap[city.substring(0, 2)];
-                
-                if (!sidoCode) throw new Error("지역 코드를 찾을 수 없음");
+                if (!sidoCode) return;
 
-                // 1. 해당 시도의 시군구 목록 호출하여 현재 구(District)에 맞는 코드 찾기
                 const areaUrl = `http://www.opinet.co.kr/api/areaCode.do?code=${OPINET_KEY}&area=${sidoCode}&out=json`;
                 const areaRes = await fetch(`${PROXY_BASE}${encodeURIComponent(areaUrl)}`);
                 const areaJson = await areaRes.json();
@@ -183,7 +179,6 @@
                 const targetArea = areaData.RESULT.AREA.find(a => district.includes(a.AREA_NM)) || areaData.RESULT.AREA[0];
                 const areaCode = targetArea.AREA_CD;
 
-                // 2. 해당 지역 최저가 호출
                 const gasUrl = `http://www.opinet.co.kr/api/lowTop10.do?code=${OPINET_KEY}&area=${areaCode}&prodcd=B027&out=json`;
                 const gasRes = await fetch(`${PROXY_BASE}${encodeURIComponent(gasUrl)}`);
                 const gasJson = await gasRes.json();
@@ -200,7 +195,7 @@
                     </div>
                 `).join('');
             } catch (e) {
-                listDiv.innerHTML = '<div class="gas-item"><span class="gas-label">주변 유가 정보를 불러올 수 없습니다.</span></div>';
+                listDiv.innerHTML = '<div class="gas-item"><span class="gas-label">유가 로드 실패</span></div>';
             }
         }
 
@@ -210,20 +205,17 @@
                 const data = await res.json();
                 const city = data.address.city || data.address.province || data.address.metropolitan || "";
                 const district = data.address.city_district || data.address.borough || data.address.county || "";
-                
                 document.getElementById('location').textContent = `${city} ${district}`;
                 
-                // 날씨 정보
-                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=auto`);
+                const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,dew_point_2m&timezone=auto`);
                 const w = await weatherRes.json();
                 document.getElementById('temp').textContent = Math.round(w.current.temperature_2m);
                 document.getElementById('humidity').textContent = w.current.relative_humidity_2m;
+                document.getElementById('dewpoint').textContent = Math.round(w.current.dew_point_2m);
                 document.getElementById('wind').textContent = (w.current.wind_speed_10m / 3.6).toFixed(1);
                 document.getElementById('last-update').textContent = `갱신: ${new Date().toLocaleTimeString('ko-KR')}`;
 
-                // 날씨 위치 기반 유가 정보 자동 호출
                 fetchAutoGasPrices(city, district);
-                
             } catch (e) { document.getElementById('location').textContent = "위치 확인 실패"; }
         }
 
@@ -268,12 +260,8 @@
             document.getElementById('chemOut').innerHTML = (r > 0 && w > 0 ? (w / r).toFixed(1).replace('.0','') : '0') + '<span>ml</span>';
         }
 
-        // 초기화
-        getIP();
-        getLocation();
-        setInterval(updateTime, 1000);
-        updateTime();
-        calculate();
+        getIP(); getLocation();
+        setInterval(updateTime, 1000); updateTime(); calculate();
     </script>
 </body>
 </html>
