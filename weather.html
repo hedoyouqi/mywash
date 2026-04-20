@@ -73,10 +73,7 @@
         .refresh-btn {
             background: none; border: none; font-size: 1.1rem; cursor: pointer;
             color: var(--accent-color); padding: 5px; opacity: 0.8;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .refreshing { animation: spin 0.8s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         h2 { margin-top: 0; font-size: 1.3rem; color: var(--accent-color); margin-bottom: 20px; opacity: 0.9; }
 
@@ -97,7 +94,7 @@
 
         .gas-info-text { display: flex; flex-direction: column; gap: 2px; }
         .gas-label { font-size: 0.8rem; opacity: 0.5; }
-        .gas-station { font-size: 0.9rem; font-weight: bold; opacity: 0.8; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .gas-station { font-size: 0.9rem; font-weight: bold; opacity: 0.8; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .gas-val { font-size: 1.4rem; font-weight: 900; color: var(--text-color); }
 
         .result-display { 
@@ -131,11 +128,11 @@
         <div class="card">
             <div class="update-area">
                 <span class="update-time" id="last-update">방금 전</span>
-                <button class="refresh-btn" onclick="manualRefresh()" id="refresh-icon">🔄</button>
+                <button class="refresh-btn" onclick="manualRefresh()">🔄</button>
             </div>
             <h2>📍 실시간 날씨</h2>
             <div class="weather-info">
-                <div><span>현재 위치</span><span id="location" style="text-align: right; opacity: 0.8; font-weight: bold;">탐색 중...</span></div>
+                <div><span>현재 위치</span><span id="location" style="text-align: right; opacity: 0.8; font-weight: bold;">구미시</span></div>
                 <div><span>🌡️ 온도/습도</span><span><span id="temp">--</span>°C / <span id="humidity">--</span>%</span></div>
                 <div style="color: #00c7be;"><span>🌱 이슬점</span><span><span id="dewpoint">--</span>°C</span></div>
                 <div><span>🌬️ 풍속</span><span><span id="wind">--</span> m/s</span></div>
@@ -143,17 +140,17 @@
             </div>
             
             <h2 style="margin-top: 30px; margin-bottom: 15px;">⛽ 구미시 최저가 정보</h2>
-            <div class="gas-price-box" id="gas-list">
+            <div class="gas-price-box">
                 <div class="gas-item premium">
-                    <div class="gas-info-text"><span class="gas-label">고급휘발유</span><span class="gas-station" id="name-B034">불러오는 중..</span></div>
+                    <div class="gas-info-text"><span class="gas-label">고급휘발유</span><span class="gas-station" id="name-B034">데이터 로딩..</span></div>
                     <span class="gas-val" id="price-B034">--원</span>
                 </div>
                 <div class="gas-item gasoline">
-                    <div class="gas-info-text"><span class="gas-label">휘발유</span><span class="gas-station" id="name-B027">불러오는 중..</span></div>
+                    <div class="gas-info-text"><span class="gas-label">휘발유</span><span class="gas-station" id="name-B027">데이터 로딩..</span></div>
                     <span class="gas-val" id="price-B027" style="color:var(--gas-gasoline)">--원</span>
                 </div>
                 <div class="gas-item diesel">
-                    <div class="gas-info-text"><span class="gas-label">경유</span><span class="gas-station" id="name-D047">불러오는 중..</span></div>
+                    <div class="gas-info-text"><span class="gas-label">경유</span><span class="gas-station" id="name-D047">데이터 로딩..</span></div>
                     <span class="gas-val" id="price-D047">--원</span>
                 </div>
             </div>
@@ -179,20 +176,22 @@
 
     <script>
         const OPINET_KEY = 'b240414745'; 
-        const PROXY_BASE = 'https://api.allorigins.win/get?url=';
-        const GUMI_CODE = '0819'; // 구미시 지역코드
+        const GUMI_CODE = '0819'; 
+        // 가장 안정적인 CORS 우회 서비스 사용
+        const PROXY = 'https://api.allorigins.win/get?url=';
 
-        async function fetchGumiGas(prodCode) {
-            const url = `http://www.opinet.co.kr/api/lowTop10.do?code=${OPINET_KEY}&area=${GUMI_CODE}&prodcd=${prodCode}&out=json`;
+        async function fetchGasData(prod) {
+            const api = `http://www.opinet.co.kr/api/lowTop10.do?code=${OPINET_KEY}&area=${GUMI_CODE}&prodcd=${prod}&out=json`;
             try {
-                const res = await fetch(`${PROXY_BASE}${encodeURIComponent(url)}`);
-                const json = await res.json();
+                const response = await fetch(`${PROXY}${encodeURIComponent(api)}`);
+                const json = await response.json();
                 const data = JSON.parse(json.contents);
-                const best = data.RESULT.OIL[0];
-                document.getElementById(`price-${prodCode}`).textContent = parseInt(best.PRICE).toLocaleString() + '원';
-                document.getElementById(`name-${prodCode}`).textContent = best.OS_NM;
+                const info = data.RESULT.OIL[0];
+                
+                document.getElementById(`price-${prod}`).textContent = parseInt(info.PRICE).toLocaleString() + '원';
+                document.getElementById(`name-${prod}`).textContent = info.OS_NM;
             } catch (e) {
-                document.getElementById(`price-${prodCode}`).textContent = '오류';
+                document.getElementById(`name-${prod}`).textContent = "일시적 오류";
             }
         }
 
@@ -200,8 +199,8 @@
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`, {headers:{'Accept-Language':'ko'}});
                 const data = await res.json();
-                const city = data.address.city || data.address.province || data.address.metropolitan || "";
-                const district = data.address.city_district || data.address.borough || data.address.county || "";
+                const city = data.address.city || data.address.province || "구미시";
+                const district = data.address.city_district || "";
                 document.getElementById('location').textContent = `${city} ${district}`;
                 
                 const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,dew_point_2m&timezone=auto`);
@@ -211,14 +210,12 @@
                 document.getElementById('dewpoint').textContent = Math.round(w.current.dew_point_2m);
                 document.getElementById('wind').textContent = (w.current.wind_speed_10m / 3.6).toFixed(1);
                 document.getElementById('last-update').textContent = `갱신: ${new Date().toLocaleTimeString('ko-KR')}`;
-            } catch (e) { document.getElementById('location').textContent = "위치 확인 실패"; }
+            } catch (e) { }
         }
 
         function manualRefresh() {
-            document.getElementById('refresh-icon').classList.add('refreshing');
-            getIP(); getLocation(); 
-            ['B034', 'B027', 'D047'].forEach(code => fetchGumiGas(code));
-            setTimeout(() => document.getElementById('refresh-icon').classList.remove('refreshing'), 800);
+            getIP(); getLocation();
+            ['B034', 'B027', 'D047'].forEach(p => fetchGasData(p));
         }
 
         function getLocation() { 
@@ -232,7 +229,7 @@
                 const res = await fetch('https://1.1.1.1/cdn-cgi/trace');
                 const data = await res.text();
                 document.getElementById('user-ip').textContent = data.split('\n').find(l => l.startsWith('ip=')).split('=')[1];
-            } catch (e) { document.getElementById('user-ip').textContent = "확인 불가"; }
+            } catch (e) { }
         }
 
         function updateTime() {
@@ -246,18 +243,18 @@
             document.getElementById('date').textContent = now.toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric', weekday:'long'});
         }
 
-        function toggleTheme() {
-            document.body.hasAttribute('data-theme') ? document.body.removeAttribute('data-theme') : document.body.setAttribute('data-theme', 'dark');
-        }
-
         function calculate() {
             const r = parseFloat(document.getElementById('ratio').value) || 0;
             const w = parseFloat(document.getElementById('water').value) || 0;
             document.getElementById('chemOut').innerHTML = (r > 0 && w > 0 ? (w / r).toFixed(1).replace('.0','') : '0') + '<span>ml</span>';
         }
 
+        function toggleTheme() {
+            document.body.hasAttribute('data-theme') ? document.body.removeAttribute('data-theme') : document.body.setAttribute('data-theme', 'dark');
+        }
+
         getIP(); getLocation(); updateTime(); calculate();
-        ['B034', 'B027', 'D047'].forEach(code => fetchGumiGas(code));
+        ['B034', 'B027', 'D047'].forEach(p => fetchGasData(p));
         setInterval(updateTime, 1000);
     </script>
 </body>
