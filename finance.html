@@ -21,7 +21,6 @@
             --down-color: #3b82f6;
             --up-bg: rgba(239, 68, 68, 0.12);
             --down-bg: rgba(59, 130, 246, 0.12);
-            /* 로또 공 색상 */
             --ball-y: #fbc531; --ball-b: #0984e3; --ball-r: #e84118; --ball-g: #7f8fa6; --ball-gn: #4cd137;
         }
 
@@ -138,10 +137,10 @@
 
     <!-- 시장 심리 배너 -->
     <div class="market-mood" id="marketMoodBox">
-        <div class="mood-icon" id="moodIcon">🔥</div>
+        <div class="mood-icon" id="moodIcon">⏳</div>
         <div class="mood-info">
-            <div class="title" id="moodTitle">현재 시장: 강한 불장 (Bull Market)</div>
-            <div class="desc" id="moodDesc">지수 동반 상승세로 매수 심리가 우세합니다.</div>
+            <div class="title" id="moodTitle">시장 분석 중...</div>
+            <div class="desc" id="moodDesc">실시간 증시 데이터를 동기화하고 있습니다.</div>
         </div>
     </div>
 
@@ -155,10 +154,10 @@
             </div>
         </div>
         <div class="indices-grid" id="indicesGrid">
-            <div class="index-item"><span class="index-name">코스피 (KOSPI)</span><span class="index-val rajdhani">2,688.15</span><span class="index-change up">+1.35%</span></div>
-            <div class="index-item"><span class="index-name">코스닥 (KOSDAQ)</span><span class="index-val rajdhani">874.20</span><span class="index-change down">-0.15%</span></div>
-            <div class="index-item"><span class="index-name">나스닥 (NASDAQ)</span><span class="index-val rajdhani">17,890.10</span><span class="index-change up">+1.12%</span></div>
-            <div class="index-item"><span class="index-name">원/달러 환율 (실시간)</span><span class="index-val rajdhani" id="exchange-val">1,372.50원</span><span class="index-change up">Live</span></div>
+            <div class="index-item"><span class="index-name">코스피 (KOSPI)</span><span class="index-val rajdhani" id="kospi-val">불러오는 중...</span><span class="index-change" id="kospi-change">-</span></div>
+            <div class="index-item"><span class="index-name">코스닥 (KOSDAQ)</span><span class="index-val rajdhani" id="kosdaq-val">불러오는 중...</span><span class="index-change" id="kosdaq-change">-</span></div>
+            <div class="index-item"><span class="index-name">나스닥 (NASDAQ)</span><span class="index-val rajdhani" id="nasdaq-val">불러오는 중...</span><span class="index-change" id="nasdaq-change">-</span></div>
+            <div class="index-item"><span class="index-name">원/달러 환율</span><span class="index-val rajdhani" id="exchange-val">불러오는 중...</span><span class="index-change up">Live</span></div>
         </div>
     </div>
 
@@ -253,24 +252,79 @@
         return now.toTimeString().split(' ')[0];
     }
 
-    /* --- 1. 실시간 환율 API 연동 --- */
-    async function updateIndices() {
+    /* --- 오픈 API 연동: 실제 지수 및 환율 가져오기 --- */
+    async function fetchRealMarketData() {
+        let isKospiUp = false, isNasdaqUp = false;
+
+        // 1. 실시간 원/달러 환율 API
         try {
             const res = await fetch('https://open.er-api.com/v6/latest/USD');
-            if(res.ok) {
-                const data = await res.json();
-                if(data && data.rates && data.rates.KRW) {
-                    const krw = data.rates.KRW.toLocaleString('ko-KR', {maximumFractionDigits: 2});
-                    document.getElementById('exchange-val').innerText = krw + '원';
-                }
+            const data = await res.json();
+            if (data && data.rates && data.rates.KRW) {
+                const krw = data.rates.KRW.toLocaleString('ko-KR', {maximumFractionDigits: 2});
+                document.getElementById('exchange-val').innerText = krw + '원';
             }
         } catch(e) {
-            document.getElementById('exchange-val').innerText = '1,372.50원';
+            document.getElementById('exchange-val').innerText = '1,375.00원';
         }
+
+        // 2. 오픈 API(Yahoo Finance 프록시)를 이용한 코스피(^KS11), 코스닥(^KQ11), 나스닥(^IXIC) 실시간 수치
+        const fetchIndex = async (symbol, valElemId, changeElemId) => {
+            try {
+                const proxyUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d`;
+                const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(proxyUrl)}`);
+                const data = await res.json();
+                const meta = data.chart.result[0].meta;
+                const price = meta.regularMarketPrice.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                const prevClose = meta.chartPreviousClose || meta.previousClose;
+                const diff = meta.regularMarketPrice - prevClose;
+                const rate = ((diff / prevClose) * 100).toFixed(2);
+                const isUp = diff >= 0;
+
+                const valElem = document.getElementById(valElemId);
+                const changeElem = document.getElementById(changeElemId);
+                valElem.innerText = price;
+                changeElem.innerText = `${isUp ? '+' : ''}${rate}%`;
+                changeElem.className = `index-change ${isUp ? 'up' : 'down'}`;
+
+                return isUp;
+            } catch(e) {
+                // 대체 데이터 표시
+                return false;
+            }
+        };
+
+        isKospiUp = await fetchIndex('^KS11', 'kospi-val', 'kospi-change');
+        await fetchIndex('^KQ11', 'kosdaq-val', 'kosdaq-change');
+        isNasdaqUp = await fetchIndex('^IXIC', 'nasdaq-val', 'nasdaq-change');
+
+        // 시장 심리 배너 실시간 업데이트
+        const moodIcon = document.getElementById('moodIcon');
+        const moodTitle = document.getElementById('moodTitle');
+        const moodDesc = document.getElementById('moodDesc');
+
+        if (isKospiUp && isNasdaqUp) {
+            moodIcon.innerText = "🔥";
+            moodTitle.innerText = "현재 시장: 강력한 불장 (Bull Market)";
+            moodDesc.innerText = "글로벌 주요 지수가 동반 상승 중입니다. 매수세가 우세합니다.";
+        } else if (!isKospiUp && !isNasdaqUp) {
+            moodIcon.innerText = "💧";
+            moodTitle.innerText = "현재 시장: 조정장 / 약세장 (Bear Market)";
+            moodDesc.innerText = "지수 하락으로 리스크 관리가 필요한 구간입니다.";
+        } else {
+            moodIcon.innerText = "⚖️";
+            moodTitle.innerText = "현재 시장: 혼조세 / 박스권 장세";
+            moodDesc.innerText = "국장과 미장의 디커플링이 진행되고 있습니다.";
+        }
+
         document.getElementById('update-indices').innerText = getTimeString();
     }
 
-    /* --- 2. 급등주 데이터 갱신 --- */
+    function updateIndices() {
+        fetchRealMarketData();
+    }
+
+    /* --- 급등주 데이터 --- */
     let currentMarketTab = 'kr';
     const stockLists = {
         kr: [
@@ -322,12 +376,11 @@
         document.getElementById('update-stocks').innerText = getTimeString();
     }
 
-    /* --- 3. 뉴스 섹션 새로고침 --- */
     function updateNewsSection() {
         document.getElementById('update-news').innerText = getTimeString();
     }
 
-    /* --- 4. 사용자별 & 일요일 오전 6시 기준 로또 추천 로직 --- */
+    /* --- 사용자별 & 일요일 오전 6시 기준 로또 추천 로직 --- */
     function getBallColor(num) {
         if (num <= 10) return 'var(--ball-y)';
         if (num <= 20) return 'var(--ball-b)';
@@ -336,25 +389,20 @@
         return 'var(--ball-gn)';
     }
 
-    // 일요일 오전 6시 기준 로또 회차 주기에 맞춘 고유 주간 키 생성
     function getLottoWeekKey() {
         const now = new Date();
-        // KST 기준 시간 보정 (UTC+9)
         const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
         const kstDate = new Date(utc + (9 * 3600000));
         
-        // 일요일 오전 6시를 기준으로 주(Week) 번호 계산
-        const day = kstDate.getDay(); // 일요일: 0
+        const day = kstDate.getDay();
         const hour = kstDate.getHours();
         
-        // 일요일이고 오전 6시 이전이라면 아직 전주(토요일 마감 전)로 취급
         if (day === 0 && hour < 6) {
             kstDate.setDate(kstDate.getDate() - 1);
         }
         
-        // 이번 주 일요일 오전 6시 기준 타임스탬프 계산
         const sun = new Date(kstDate);
-        sun.setDate(sun.getDate() - sun.getDay()); // 이번 주 일요일로 이동
+        sun.setDate(sun.getDate() - sun.getDay());
         sun.setHours(6, 0, 0, 0);
         
         if (kstDate < sun) {
@@ -386,7 +434,6 @@
         const weekKey = getLottoWeekKey();
         const guid = getOrCreateUserGuid();
         
-        // 유저 ID와 주간 키를 조합하여 시드 생성
         let combined = weekKey + guid;
         let seed = 0;
         for (let i = 0; i < combined.length; i++) {
@@ -395,7 +442,6 @@
         }
         seed = Math.abs(seed);
 
-        // 5게임 생성
         for (let i = 0; i < 5; i++) {
             let nums = [];
             while (nums.length < 6) {
