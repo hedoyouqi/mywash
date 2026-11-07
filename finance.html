@@ -60,8 +60,17 @@
         
         .card-tools { display: flex; align-items: center; gap: 8px; }
         .update-time { font-size: 0.7rem; color: var(--text-sub); font-family: 'Rajdhani', sans-serif; }
-        .refresh-btn { background: transparent; border: 1px solid var(--card-border); color: var(--text-sub); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; transition: all 0.2s; }
-        .refresh-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); transform: rotate(180deg); }
+        
+        /* 새로고침 버튼 회전 애니메이션 클래스 */
+        .refresh-btn { background: transparent; border: 1px solid var(--card-border); color: var(--text-sub); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; transition: transform 0.4s ease; }
+        .refresh-btn.spinning { transform: rotate(360deg); color: var(--accent); border-color: var(--accent); }
+
+        /* 숫자 변경 시 반짝이는 효과 애니메이션 */
+        @keyframes flashHighlight {
+            0% { background-color: rgba(56, 189, 248, 0.3); border-color: var(--accent); }
+            100% { background-color: rgba(255, 255, 255, 0.02); border-color: var(--card-border); }
+        }
+        .flash { animation: flashHighlight 0.8s ease; }
 
         /* 시계 위젯 */
         .time-section { text-align: center; padding: 16px; }
@@ -76,7 +85,7 @@
 
         /* 지수 그리드 */
         .indices-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .index-item { background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); padding: 14px; border-radius: 14px; display: flex; flex-direction: column; gap: 4px; }
+        .index-item { background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); padding: 14px; border-radius: 14px; display: flex; flex-direction: column; gap: 4px; transition: background-color 0.3s, border-color 0.3s; }
         .index-name { font-size: 0.75rem; color: var(--text-sub); }
         .index-val { font-size: 1.15rem; font-weight: 700; }
         .index-change { font-size: 0.75rem; font-weight: 700; }
@@ -124,26 +133,26 @@
             <div class="card-title">📊 글로벌 주요 지수 & 실시간 환율</div>
             <div class="card-tools">
                 <span class="update-time" id="update-indices">--:--:--</span>
-                <button class="refresh-btn" onclick="updateIndices()" title="새로고침">↻</button>
+                <button class="refresh-btn" id="indicesRefreshBtn" onclick="updateIndices()" title="새로고침">↻</button>
             </div>
         </div>
         <div class="indices-grid">
-            <div class="index-item">
+            <div class="index-item" id="box-kospi">
                 <span class="index-name">코스피 (KOSPI)</span>
                 <span class="index-val rajdhani" id="kospi-val">불러오는 중...</span>
                 <span class="index-change" id="kospi-change">-</span>
             </div>
-            <div class="index-item">
+            <div class="index-item" id="box-kosdaq">
                 <span class="index-name">코스닥 (KOSDAQ)</span>
                 <span class="index-val rajdhani" id="kosdaq-val">불러오는 중...</span>
                 <span class="index-change" id="kosdaq-change">-</span>
             </div>
-            <div class="index-item">
+            <div class="index-item" id="box-nasdaq">
                 <span class="index-name">나스닥 (NASDAQ)</span>
                 <span class="index-val rajdhani" id="nasdaq-val">불러오는 중...</span>
                 <span class="index-change" id="nasdaq-change">-</span>
             </div>
-            <div class="index-item">
+            <div class="index-item" id="box-exchange">
                 <span class="index-name">원/달러 환율</span>
                 <span class="index-val rajdhani" id="exchange-val">불러오는 중...</span>
                 <span class="index-change up" id="exchange-status">Live</span>
@@ -157,7 +166,7 @@
             <div class="card-title">🍀 이번 주 나만의 행운 번호</div>
             <div class="card-tools">
                 <span class="update-time" id="update-lotto">일요일 06시 갱신</span>
-                <button class="refresh-btn" onclick="renderLotto()" title="새로고침">↻</button>
+                <button class="refresh-btn" id="lottoRefreshBtn" onclick="renderLotto()" title="새로고침">↻</button>
             </div>
         </div>
         <div class="lotto-wrap" id="lotto"></div>
@@ -209,8 +218,23 @@
         return now.toTimeString().split(' ')[0];
     }
 
-    /* --- 진짜 지수 및 환율 가져오기 --- */
+    /* --- 데이터 반짝임 효과 주는 헬퍼 함수 --- */
+    function triggerFlash(elementId) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        el.classList.remove('flash');
+        void el.offsetWidth; // 리플로우 강제 발생으로 애니메이션 재시작
+        el.classList.add('flash');
+    }
+
+    /* --- 진짜 지수 및 환율 가져오기 (회전 애니메이션 추가) --- */
     async function updateIndices() {
+        const btn = document.getElementById('indicesRefreshBtn');
+        if (btn) {
+            btn.classList.add('spinning');
+            setTimeout(() => btn.classList.remove('spinning'), 600);
+        }
+
         let isKospiUp = false, isNasdaqUp = false;
 
         // 1. 실시간 원/달러 환율 API
@@ -218,15 +242,18 @@
             const res = await fetch('https://open.er-api.com/v6/latest/USD');
             const data = await res.json();
             if (data && data.rates && data.rates.KRW) {
-                const krw = data.rates.KRW.toLocaleString('ko-KR', {maximumFractionDigits: 2});
-                document.getElementById('exchange-val').innerText = krw + '원';
+                const krw = data.rates.KRW.toLocaleString('ko-KR', {maximumFractionDigits: 2}) + '원';
+                if(document.getElementById('exchange-val').innerText !== krw) {
+                    document.getElementById('exchange-val').innerText = krw;
+                    triggerFlash('box-exchange');
+                }
             }
         } catch(e) {
             document.getElementById('exchange-val').innerText = '1,375.00원';
         }
 
         // 2. 외부 지수 데이터 받아오기
-        const fetchIndex = async (symbol, valElemId, changeElemId) => {
+        const fetchIndex = async (symbol, valElemId, changeElemId, boxId) => {
             try {
                 const proxyUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d`;
                 const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(proxyUrl)}`);
@@ -242,9 +269,16 @@
 
                 const valElem = document.getElementById(valElemId);
                 const changeElem = document.getElementById(changeElemId);
-                valElem.innerText = price;
-                changeElem.innerText = `${isUp ? '+' : ''}${rate}%`;
-                changeElem.className = `index-change ${isUp ? 'up' : 'down'}`;
+                
+                const newPriceText = price;
+                const newChangeText = `${isUp ? '+' : ''}${rate}%`;
+
+                if (valElem.innerText !== newPriceText) {
+                    valElem.innerText = newPriceText;
+                    changeElem.innerText = newChangeText;
+                    changeElem.className = `index-change ${isUp ? 'up' : 'down'}`;
+                    triggerFlash(boxId);
+                }
 
                 return isUp;
             } catch(e) {
@@ -252,9 +286,9 @@
             }
         };
 
-        isKospiUp = await fetchIndex('^KS11', 'kospi-val', 'kospi-change');
-        await fetchIndex('^KQ11', 'kosdaq-val', 'kosdaq-change');
-        isNasdaqUp = await fetchIndex('^IXIC', 'nasdaq-val', 'nasdaq-change');
+        isKospiUp = await fetchIndex('^KS11', 'kospi-val', 'kospi-change', 'box-kospi');
+        await fetchIndex('^KQ11', 'kosdaq-val', 'kosdaq-change', 'box-kosdaq');
+        isNasdaqUp = await fetchIndex('^IXIC', 'nasdaq-val', 'nasdaq-change', 'box-nasdaq');
 
         // 시장 심리 배너 업데이트
         const moodIcon = document.getElementById('moodIcon');
@@ -325,6 +359,12 @@
     }
 
     function renderLotto() {
+        const btn = document.getElementById('lottoRefreshBtn');
+        if (btn) {
+            btn.classList.add('spinning');
+            setTimeout(() => btn.classList.remove('spinning'), 600);
+        }
+
         const container = document.getElementById('lotto');
         if (!container) return;
         container.innerHTML = '';
