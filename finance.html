@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>주식 종합 대시보드</title>
+    <title>주식 & 금융 대시보드</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 
@@ -19,8 +19,6 @@
             --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
             --up-color: #ef4444;
             --down-color: #3b82f6;
-            --up-bg: rgba(239, 68, 68, 0.12);
-            --down-bg: rgba(59, 130, 246, 0.12);
             --ball-y: #fbc531; --ball-b: #0984e3; --ball-r: #e84118; --ball-g: #7f8fa6; --ball-gn: #4cd137;
         }
 
@@ -60,7 +58,6 @@
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .card-title { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
         
-        /* 개별 새로고침 및 업데이트 시간 */
         .card-tools { display: flex; align-items: center; gap: 8px; }
         .update-time { font-size: 0.7rem; color: var(--text-sub); font-family: 'Rajdhani', sans-serif; }
         .refresh-btn { background: transparent; border: 1px solid var(--card-border); color: var(--text-sub); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; transition: all 0.2s; }
@@ -79,35 +76,12 @@
 
         /* 지수 그리드 */
         .indices-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .index-item { background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); padding: 12px; border-radius: 14px; display: flex; flex-direction: column; gap: 3px; }
+        .index-item { background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); padding: 14px; border-radius: 14px; display: flex; flex-direction: column; gap: 4px; }
         .index-name { font-size: 0.75rem; color: var(--text-sub); }
-        .index-val { font-size: 1.1rem; font-weight: 700; }
-        .index-change { font-size: 0.72rem; font-weight: 700; }
+        .index-val { font-size: 1.15rem; font-weight: 700; }
+        .index-change { font-size: 0.75rem; font-weight: 700; }
         .up { color: var(--up-color); }
         .down { color: var(--down-color); }
-
-        /* 급등주 탭 및 리스트 */
-        .tab-container { display: flex; gap: 6px; margin-bottom: 12px; }
-        .tab-btn { flex: 1; padding: 7px; border-radius: 10px; border: 1px solid var(--card-border); background: transparent; color: var(--text-sub); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-        .stock-list { display: flex; flex-direction: column; gap: 8px; }
-        .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); }
-        .stock-left { display: flex; flex-direction: column; gap: 2px; }
-        .stock-name { font-size: 0.85rem; font-weight: 700; }
-        .stock-code { font-size: 0.68rem; color: var(--text-sub); }
-        .stock-right { text-align: right; display: flex; flex-direction: column; gap: 2px; }
-        .stock-price { font-size: 0.85rem; font-weight: 700; }
-        .stock-rate { font-size: 0.72rem; font-weight: 700; padding: 2px 6px; border-radius: 6px; display: inline-block; }
-        .stock-rate.up { background: var(--up-bg); color: var(--up-color); }
-        .stock-rate.down { background: var(--down-bg); color: var(--down-color); }
-
-        /* 뉴스 및 공시 티커 */
-        .news-box { display: flex; flex-direction: column; gap: 8px; }
-        .news-item { font-size: 0.8rem; color: var(--text-main); text-decoration: none; padding: 9px 12px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); display: flex; gap: 8px; align-items: flex-start; transition: background 0.2s; }
-        .news-item:hover { background: rgba(56, 189, 248, 0.08); }
-        .news-tag { font-size: 0.68rem; font-weight: 700; color: var(--accent); background: rgba(56, 189, 248, 0.1); padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
-        .news-title { line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
 
         /* 로또 번호 스타일 (맨 하단) */
         .lotto-wrap { display: flex; flex-direction: column; gap: 8px; }
@@ -139,8 +113,8 @@
     <div class="market-mood" id="marketMoodBox">
         <div class="mood-icon" id="moodIcon">⏳</div>
         <div class="mood-info">
-            <div class="title" id="moodTitle">시장 분석 중...</div>
-            <div class="desc" id="moodDesc">실시간 증시 데이터를 동기화하고 있습니다.</div>
+            <div class="title" id="moodTitle">시장 데이터 로딩 중...</div>
+            <div class="desc" id="moodDesc">실시간 금융 지수를 불러오는 중입니다.</div>
         </div>
     </div>
 
@@ -153,48 +127,31 @@
                 <button class="refresh-btn" onclick="updateIndices()" title="새로고침">↻</button>
             </div>
         </div>
-        <div class="indices-grid" id="indicesGrid">
-            <div class="index-item"><span class="index-name">코스피 (KOSPI)</span><span class="index-val rajdhani" id="kospi-val">불러오는 중...</span><span class="index-change" id="kospi-change">-</span></div>
-            <div class="index-item"><span class="index-name">코스닥 (KOSDAQ)</span><span class="index-val rajdhani" id="kosdaq-val">불러오는 중...</span><span class="index-change" id="kosdaq-change">-</span></div>
-            <div class="index-item"><span class="index-name">나스닥 (NASDAQ)</span><span class="index-val rajdhani" id="nasdaq-val">불러오는 중...</span><span class="index-change" id="nasdaq-change">-</span></div>
-            <div class="index-item"><span class="index-name">원/달러 환율</span><span class="index-val rajdhani" id="exchange-val">불러오는 중...</span><span class="index-change up">Live</span></div>
-        </div>
-    </div>
-
-    <!-- 급등주 TOP 5 -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">⚡ 실시간 급등주 주도주</div>
-            <div class="card-tools">
-                <span class="update-time" id="update-stocks">--:--:--</span>
-                <button class="refresh-btn" onclick="updateStocksSection()" title="새로고침">↻</button>
+        <div class="indices-grid">
+            <div class="index-item">
+                <span class="index-name">코스피 (KOSPI)</span>
+                <span class="index-val rajdhani" id="kospi-val">불러오는 중...</span>
+                <span class="index-change" id="kospi-change">-</span>
+            </div>
+            <div class="index-item">
+                <span class="index-name">코스닥 (KOSDAQ)</span>
+                <span class="index-val rajdhani" id="kosdaq-val">불러오는 중...</span>
+                <span class="index-change" id="kosdaq-change">-</span>
+            </div>
+            <div class="index-item">
+                <span class="index-name">나스닥 (NASDAQ)</span>
+                <span class="index-val rajdhani" id="nasdaq-val">불러오는 중...</span>
+                <span class="index-change" id="nasdaq-change">-</span>
+            </div>
+            <div class="index-item">
+                <span class="index-name">원/달러 환율</span>
+                <span class="index-val rajdhani" id="exchange-val">불러오는 중...</span>
+                <span class="index-change up" id="exchange-status">Live</span>
             </div>
         </div>
-        <div class="tab-container">
-            <button class="tab-btn active" onclick="switchTab('kr', this)">🇰🇷 국내증시</button>
-            <button class="tab-btn" onclick="switchTab('us', this)">🇺🇸 미국증시</button>
-        </div>
-        <div class="stock-list" id="stockList"></div>
     </div>
 
-    <!-- 실시간 주식 뉴스 & 공시 -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">📰 증권 이슈 뉴스 & 공시</div>
-            <div class="card-tools">
-                <span class="update-time" id="update-news">--:--:--</span>
-                <button class="refresh-btn" onclick="updateNewsSection()" title="새로고침">↻</button>
-            </div>
-        </div>
-        <div class="news-box" id="newsBox">
-            <a href="https://www.wapeb.com/news" target="_blank" class="news-item"><span class="news-tag">공시</span><span class="news-title">삼성전자, 반도체 부문 대규모 시설 투자 공시 발표 확인하기</span></a>
-            <a href="https://www.wapeb.com/news" target="_blank" class="news-item"><span class="news-tag">뉴스</span><span class="news-title">연준 금리 인하 기대감에 나스닥 선물 및 뉴욕증시 동향</span></a>
-            <a href="https://www.wapeb.com/news" target="_blank" class="news-item"><span class="news-tag">특징주</span><span class="news-title">AI 전력 인프라 및 변압기 관련주 실시간 수급 분석</span></a>
-            <a href="https://www.wapeb.com/news" target="_blank" class="news-item"><span class="news-tag">공시</span><span class="news-title">SK하이닉스 HBM 공급 계약 관련 실시간 조회공시 피드</span></a>
-        </div>
-    </div>
-
-    <!-- 맨 하단: 나만의 행운 번호 (로또 추천) -->
+    <!-- 나만의 행운 번호 (로또 추천) -->
     <div class="card">
         <div class="card-header">
             <div class="card-title">🍀 이번 주 나만의 행운 번호</div>
@@ -252,8 +209,8 @@
         return now.toTimeString().split(' ')[0];
     }
 
-    /* --- 오픈 API 연동: 실제 지수 및 환율 가져오기 --- */
-    async function fetchRealMarketData() {
+    /* --- 진짜 지수 및 환율 가져오기 --- */
+    async function updateIndices() {
         let isKospiUp = false, isNasdaqUp = false;
 
         // 1. 실시간 원/달러 환율 API
@@ -268,12 +225,14 @@
             document.getElementById('exchange-val').innerText = '1,375.00원';
         }
 
-        // 2. 오픈 API(Yahoo Finance 프록시)를 이용한 코스피(^KS11), 코스닥(^KQ11), 나스닥(^IXIC) 실시간 수치
+        // 2. 외부 지수 데이터 받아오기
         const fetchIndex = async (symbol, valElemId, changeElemId) => {
             try {
                 const proxyUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d`;
-                const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(proxyUrl)}`);
-                const data = await res.json();
+                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(proxyUrl)}`);
+                const jsonWrapper = await res.json();
+                const data = JSON.parse(jsonWrapper.contents);
+                
                 const meta = data.chart.result[0].meta;
                 const price = meta.regularMarketPrice.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 const prevClose = meta.chartPreviousClose || meta.previousClose;
@@ -289,7 +248,6 @@
 
                 return isUp;
             } catch(e) {
-                // 대체 데이터 표시
                 return false;
             }
         };
@@ -298,19 +256,19 @@
         await fetchIndex('^KQ11', 'kosdaq-val', 'kosdaq-change');
         isNasdaqUp = await fetchIndex('^IXIC', 'nasdaq-val', 'nasdaq-change');
 
-        // 시장 심리 배너 실시간 업데이트
+        // 시장 심리 배너 업데이트
         const moodIcon = document.getElementById('moodIcon');
         const moodTitle = document.getElementById('moodTitle');
         const moodDesc = document.getElementById('moodDesc');
 
         if (isKospiUp && isNasdaqUp) {
             moodIcon.innerText = "🔥";
-            moodTitle.innerText = "현재 시장: 강력한 불장 (Bull Market)";
-            moodDesc.innerText = "글로벌 주요 지수가 동반 상승 중입니다. 매수세가 우세합니다.";
+            moodTitle.innerText = "현재 시장: 강한 불장 (Bull Market)";
+            moodDesc.innerText = "글로벌 주요 지수가 동반 상승 중입니다.";
         } else if (!isKospiUp && !isNasdaqUp) {
             moodIcon.innerText = "💧";
             moodTitle.innerText = "현재 시장: 조정장 / 약세장 (Bear Market)";
-            moodDesc.innerText = "지수 하락으로 리스크 관리가 필요한 구간입니다.";
+            moodDesc.innerText = "지수 하락으로 리스크 관리가 필요합니다.";
         } else {
             moodIcon.innerText = "⚖️";
             moodTitle.innerText = "현재 시장: 혼조세 / 박스권 장세";
@@ -320,67 +278,7 @@
         document.getElementById('update-indices').innerText = getTimeString();
     }
 
-    function updateIndices() {
-        fetchRealMarketData();
-    }
-
-    /* --- 급등주 데이터 --- */
-    let currentMarketTab = 'kr';
-    const stockLists = {
-        kr: [
-            { name: "삼천당제약", code: "000250", price: "186,500원", rate: "+30.00%", isUp: true },
-            { name: "리가켐바이오", code: "41080", price: "114,000원", rate: "+19.20%", isUp: true },
-            { name: "HD현대마린솔루션", code: "443060", price: "168,000원", rate: "+15.50%", isUp: true },
-            { name: "에코프로비엠", code: "247540", price: "201,000원", rate: "+10.20%", isUp: true },
-            { name: "HLB", code: "028300", price: "89,000원", rate: "+9.10%", isUp: true }
-        ],
-        us: [
-            { name: "NVIDIA (NVDA)", code: "NASDAQ", price: "$130.20", rate: "+7.15%", isUp: true },
-            { name: "Tesla (TSLA)", code: "NASDAQ", price: "$252.40", rate: "+6.10%", isUp: true },
-            { name: "Super Micro (SMCI)", code: "NASDAQ", price: "$845.00", rate: "+5.90%", isUp: true },
-            { name: "Apple (AAPL)", code: "NASDAQ", price: "$218.50", rate: "+2.80%", isUp: true },
-            { name: "Coinbase (COIN)", code: "NASDAQ", price: "$230.10", rate: "+2.40%", isUp: true }
-        ]
-    };
-
-    function renderStocks(market) {
-        currentMarketTab = market;
-        const listContainer = document.getElementById('stockList');
-        if (!listContainer) return;
-        listContainer.innerHTML = '';
-        stockLists[market].forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'stock-item';
-            row.innerHTML = `
-                <div class="stock-left">
-                    <span class="stock-name">${item.name}</span>
-                    <span class="stock-code">${item.code}</span>
-                </div>
-                <div class="stock-right">
-                    <span class="stock-price rajdhani">${item.price}</span>
-                    <span class="stock-rate ${item.isUp ? 'up':'down'}">${item.rate}</span>
-                </div>
-            `;
-            listContainer.appendChild(row);
-        });
-    }
-
-    function switchTab(market, btn) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderStocks(market);
-    }
-
-    function updateStocksSection() {
-        renderStocks(currentMarketTab);
-        document.getElementById('update-stocks').innerText = getTimeString();
-    }
-
-    function updateNewsSection() {
-        document.getElementById('update-news').innerText = getTimeString();
-    }
-
-    /* --- 사용자별 & 일요일 오전 6시 기준 로또 추천 로직 --- */
+    /* --- 사용자별 & 일요일 오전 6시 기준 로또 추천 --- */
     function getBallColor(num) {
         if (num <= 10) return 'var(--ball-y)';
         if (num <= 20) return 'var(--ball-b)';
@@ -467,8 +365,6 @@
     /* --- 전체 새로고침 --- */
     function refreshAll() {
         updateIndices();
-        updateStocksSection();
-        updateNewsSection();
         renderLotto();
     }
 
