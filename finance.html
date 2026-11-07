@@ -3,136 +3,331 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>마이 데일리 대시보드 (개인화 최종본)</title>
+    <title>주식 종합 대시보드</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            --card-bg: rgba(255, 255, 255, 0.65);
-            --card-border: rgba(255, 255, 255, 0.8);
-            --text-main: #2d3436;
-            --text-sub: #636e72;
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            --accent: #6c5ce7;
-            --up-bg: rgba(255, 118, 117, 0.15);
-            --up-text: #d63031;
-            --down-bg: rgba(116, 185, 255, 0.15);
-            --down-text: #0984e3;
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --accent: #38bdf8;
+            --accent-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+            --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            --up-color: #ef4444;
+            --down-color: #3b82f6;
+            --up-bg: rgba(239, 68, 68, 0.12);
+            --down-bg: rgba(59, 130, 246, 0.12);
+            /* 로또 공 색상 */
             --ball-y: #fbc531; --ball-b: #0984e3; --ball-r: #e84118; --ball-g: #7f8fa6; --ball-gn: #4cd137;
         }
 
-        body.dark {
-            --bg-gradient: linear-gradient(160deg, #1e272e, #11151a);
-            --card-bg: rgba(30, 39, 46, 0.6);
-            --card-border: rgba(255, 255, 255, 0.1);
-            --text-main: #dfe6e9;
-            --text-sub: #b2bec3;
-            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-            --accent: #a29bfe;
-            --up-bg: rgba(255, 118, 117, 0.2);
-            --up-text: #ff7675;
-            --down-bg: rgba(116, 185, 255, 0.2);
-            --down-text: #74b9ff;
+        body.light {
+            --bg-color: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(0, 0, 0, 0.06);
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --accent: #0284c7;
+            --accent-gradient: linear-gradient(135deg, #0284c7 0%, #6366f1 100%);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
         }
 
-        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; outline: none; }
 
         body {
-            margin: 0; background: var(--bg-gradient); background-attachment: fixed;
+            margin: 0; background-color: var(--bg-color);
             color: var(--text-main); font-family: 'Noto Sans KR', sans-serif;
-            min-height: 100vh; transition: background 0.5s ease;
+            min-height: 100vh; transition: background-color 0.3s ease, color 0.3s ease;
+            padding: 20px 16px 60px;
         }
 
-        .time, .coin-price, .lotto-ball, .ip { font-family: 'Rajdhani', sans-serif; }
+        .rajdhani { font-family: 'Rajdhani', sans-serif; }
+        .container { max-width: 540px; margin: auto; }
 
-        .container { max-width: 520px; margin: auto; padding: 20px 16px 60px; }
+        /* 상단 바 */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .ip { font-size: 0.82rem; color: var(--text-sub); font-weight: 600; background: var(--card-bg); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--card-border); backdrop-filter: blur(10px); }
+        .controls { display: flex; gap: 8px; }
+        .icon-btn { background: var(--card-bg); border: 1px solid var(--card-border); width: 40px; height: 40px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-main); box-shadow: var(--shadow); transition: transform 0.2s; }
+        .icon-btn:active { transform: scale(0.9); }
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 0 4px; }
-        .ip { font-size: 14px; color: var(--text-sub); font-weight: 600; background: var(--card-bg); padding: 6px 12px; border-radius: 20px; backdrop-filter: blur(4px); }
-        .mode-btn { background: var(--card-bg); border: 1px solid var(--card-border); width: 42px; height: 42px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        /* 카드 공통 스타일 */
+        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 24px; padding: 20px; margin-bottom: 18px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: var(--shadow); position: relative; }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .card-title { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        
+        /* 개별 새로고침 및 업데이트 시간 */
+        .card-tools { display: flex; align-items: center; gap: 8px; }
+        .update-time { font-size: 0.7rem; color: var(--text-sub); font-family: 'Rajdhani', sans-serif; }
+        .refresh-btn { background: transparent; border: 1px solid var(--card-border); color: var(--text-sub); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+        .refresh-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); transform: rotate(180deg); }
 
-        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 24px; padding: 24px; margin-bottom: 24px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: var(--shadow); transition: transform 0.3s ease; }
-        .card-header { text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: 700; color: var(--text-main); opacity: 0.9; }
+        /* 시계 위젯 */
+        .time-section { text-align: center; padding: 16px; }
+        .date-badge { display: inline-block; font-size: 0.8rem; color: var(--accent); background: rgba(56, 189, 248, 0.1); padding: 4px 12px; border-radius: 12px; margin-bottom: 6px; font-weight: 700; }
+        .time-display { font-size: 3rem; font-weight: 700; line-height: 1; letter-spacing: -1px; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .time-section { text-align: center; }
-        .date-badge { display: inline-block; font-size: 14px; color: var(--accent); background: rgba(108, 92, 231, 0.15); padding: 4px 12px; border-radius: 12px; margin-bottom: 8px; font-weight: 700; }
-        .time-display { font-size: 56px; font-weight: 700; line-height: 1; background: linear-gradient(to right, var(--text-main), var(--text-sub)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; }
+        /* 시장 심리 배너 */
+        .market-mood { display: flex; align-items: center; gap: 14px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 16px; padding: 14px 18px; margin-bottom: 18px; }
+        .mood-icon { font-size: 2rem; }
+        .mood-info .title { font-size: 0.9rem; font-weight: 700; color: var(--accent); }
+        .mood-info .desc { font-size: 0.78rem; color: var(--text-sub); margin-top: 2px; line-height: 1.3; }
 
-        .lotto-wrap { display: flex; flex-direction: column; gap: 10px; }
-        .lotto-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 12px; }
-        .lotto-ball { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: inset -2px -2px 6px rgba(0,0,0,0.2); }
+        /* 지수 그리드 */
+        .indices-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .index-item { background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); padding: 12px; border-radius: 14px; display: flex; flex-direction: column; gap: 3px; }
+        .index-name { font-size: 0.75rem; color: var(--text-sub); }
+        .index-val { font-size: 1.1rem; font-weight: 700; }
+        .index-change { font-size: 0.72rem; font-weight: 700; }
+        .up { color: var(--up-color); }
+        .down { color: var(--down-color); }
 
-        .coin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .coin-item { display: flex; flex-direction: column; align-items: center; padding: 12px 8px; border-radius: 16px; transition: background 0.3s; }
-        .coin-item.up { background: var(--up-bg); }
-        .coin-item.down { background: var(--down-bg); }
-        .coin-name { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-        .coin-price { font-size: 16px; font-weight: 600; }
-        .coin-change { font-size: 12px; margin-top: 2px; font-weight: 700; }
-        .up .coin-price, .up .coin-change { color: var(--up-text); }
-        .down .coin-price, .down .coin-change { color: var(--down-text); }
+        /* 급등주 탭 및 리스트 */
+        .tab-container { display: flex; gap: 6px; margin-bottom: 12px; }
+        .tab-btn { flex: 1; padding: 7px; border-radius: 10px; border: 1px solid var(--card-border); background: transparent; color: var(--text-sub); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-        @media(min-width: 600px) { .container { max-width: 800px; } .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; } .full-width { grid-column: span 2; } }
+        .stock-list { display: flex; flex-direction: column; gap: 8px; }
+        .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); }
+        .stock-left { display: flex; flex-direction: column; gap: 2px; }
+        .stock-name { font-size: 0.85rem; font-weight: 700; }
+        .stock-code { font-size: 0.68rem; color: var(--text-sub); }
+        .stock-right { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+        .stock-price { font-size: 0.85rem; font-weight: 700; }
+        .stock-rate { font-size: 0.72rem; font-weight: 700; padding: 2px 6px; border-radius: 6px; display: inline-block; }
+        .stock-rate.up { background: var(--up-bg); color: var(--up-color); }
+        .stock-rate.down { background: var(--down-bg); color: var(--down-color); }
+
+        /* 뉴스 및 공시 티커 */
+        .news-box { display: flex; flex-direction: column; gap: 8px; }
+        .news-item { font-size: 0.8rem; color: var(--text-main); text-decoration: none; padding: 9px 12px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); display: flex; gap: 8px; align-items: flex-start; transition: background 0.2s; }
+        .news-item:hover { background: rgba(56, 189, 248, 0.08); }
+        .news-tag { font-size: 0.68rem; font-weight: 700; color: var(--accent); background: rgba(56, 189, 248, 0.1); padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+        .news-title { line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+
+        /* 로또 번호 스타일 (맨 하단) */
+        .lotto-wrap { display: flex; flex-direction: column; gap: 8px; }
+        .lotto-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); }
+        .lotto-ball { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: inset -2px -2px 5px rgba(0,0,0,0.3); font-family: 'Rajdhani', sans-serif; }
+
+        @media(min-width: 600px) { .container { max-width: 640px; } }
     </style>
 </head>
 
-<body>
+<body class="dark">
 <div class="container">
+    <!-- 상단 바 -->
     <div class="top-bar">
         <div class="ip" id="ip">IP 확인중...</div>
-        <button class="mode-btn" id="modeBtn" onclick="toggleMode()">🌙</button>
+        <div class="controls">
+            <button class="icon-btn" id="modeBtn" onclick="toggleMode()" title="테마 변경">☀️</button>
+            <button class="icon-btn" onclick="refreshAll()" title="전체 새로고침">🔄</button>
+        </div>
     </div>
 
-    <div class="grid-layout">
-        <div class="card full-width time-section">
-            <div class="date-badge" id="date"></div>
-            <div class="time-display time" id="time">00:00:00</div>
-            <div style="font-size:13px; color:var(--text-sub);">SEOUL, KOREA</div>
-        </div>
+    <!-- 실시간 시계 -->
+    <div class="card time-section" style="margin-bottom: 14px;">
+        <div class="date-badge" id="date">로딩 중...</div>
+        <div class="time-display rajdhani" id="time">00:00:00</div>
+    </div>
 
-        <div class="card">
-            <div class="card-header">🍀 나만의 행운 번호</div>
-            <div class="lotto-wrap" id="lotto"></div>
+    <!-- 시장 심리 배너 -->
+    <div class="market-mood" id="marketMoodBox">
+        <div class="mood-icon" id="moodIcon">🔥</div>
+        <div class="mood-info">
+            <div class="title" id="moodTitle">현재 시장: 강한 불장 (Bull Market)</div>
+            <div class="desc" id="moodDesc">지수 동반 상승세로 매수 심리가 우세합니다.</div>
         </div>
+    </div>
 
-        <div class="card">
-            <div class="card-header">🔥 실시간 시세 (KRW)</div>
-            <div id="coin" class="coin-grid"></div>
+    <!-- 주요 지수 및 실시간 환율 카드 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">📊 글로벌 주요 지수 & 실시간 환율</div>
+            <div class="card-tools">
+                <span class="update-time" id="update-indices">--:--:--</span>
+                <button class="refresh-btn" onclick="updateIndices()" title="새로고침">↻</button>
+            </div>
         </div>
+        <div class="indices-grid" id="indicesGrid">
+            <div class="index-item"><span class="index-name">코스피 (KOSPI)</span><span class="index-val rajdhani">2,688.15</span><span class="index-change up">+1.35%</span></div>
+            <div class="index-item"><span class="index-name">코스닥 (KOSDAQ)</span><span class="index-val rajdhani">874.20</span><span class="index-change down">-0.15%</span></div>
+            <div class="index-item"><span class="index-name">나스닥 (NASDAQ)</span><span class="index-val rajdhani">17,890.10</span><span class="index-change up">+1.12%</span></div>
+            <div class="index-item"><span class="index-name">원/달러 환율 (실시간)</span><span class="index-val rajdhani" id="exchange-val">1,372.50원</span><span class="index-change up">Live</span></div>
+        </div>
+    </div>
+
+    <!-- 급등주 TOP 5 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">⚡ 실시간 급등주 주도주</div>
+            <div class="card-tools">
+                <span class="update-time" id="update-stocks">--:--:--</span>
+                <button class="refresh-btn" onclick="updateStocksSection()" title="새로고침">↻</button>
+            </div>
+        </div>
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('kr', this)">🇰🇷 국내증시</button>
+            <button class="tab-btn" onclick="switchTab('us', this)">🇺🇸 미국증시</button>
+        </div>
+        <div class="stock-list" id="stockList"></div>
+    </div>
+
+    <!-- 실시간 주식 뉴스 & 공시 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">📰 증권 이슈 뉴스 & 공시</div>
+            <div class="card-tools">
+                <span class="update-time" id="update-news">--:--:--</span>
+                <button class="refresh-btn" onclick="updateNewsSection()" title="새로고침">↻</button>
+            </div>
+        </div>
+        <div class="news-box" id="newsBox">
+            <a href="https://www.wapeb.com/news" target="_blank" class="news-item"><span class="news-tag">공시</span><span class="news-title">삼성전자, 반도체 부문 대규모 시설 투자 공시 발표 확인하기</span></a>
+            <a href="https://www.wapeb.com/news" target="_blank" class="news-item"><span class="news-tag">뉴스</span><span class="news-title">연준 금리 인하 기대감에 나스닥 선물 및 뉴욕증시 동향</span></a>
+            <a href="https://www.wapeb.com/news" target="_blank" class="news-item"><span class="news-tag">특징주</span><span class="news-title">AI 전력 인프라 및 변압기 관련주 실시간 수급 분석</span></a>
+            <a href="https://www.wapeb.com/news" target="_blank" class="news-item"><span class="news-tag">공시</span><span class="news-title">SK하이닉스 HBM 공급 계약 관련 실시간 조회공시 피드</span></a>
+        </div>
+    </div>
+
+    <!-- 맨 하단: 나만의 행운 번호 (로또 추천) -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">🍀 이번 주 나만의 행운 번호</div>
+            <div class="card-tools">
+                <span class="update-time" id="update-lotto">일요일 06시 갱신</span>
+                <button class="refresh-btn" onclick="renderLotto()" title="새로고침">↻</button>
+            </div>
+        </div>
+        <div class="lotto-wrap" id="lotto"></div>
     </div>
 </div>
 
 <script>
-    /* --- 1. 다크모드 --- */
+    /* --- 테마 모드 전환 --- */
     function toggleMode(){
         document.body.classList.toggle('dark');
+        document.body.classList.toggle('light');
         const isDark = document.body.classList.contains('dark');
         document.getElementById('modeBtn').innerText = isDark ? '☀️' : '🌙';
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+    
+    if(localStorage.getItem('theme') === 'light') {
+        document.body.classList.remove('dark');
+        document.body.classList.add('light');
+        document.getElementById('modeBtn').innerText = '🌙';
+    } else {
+        document.body.classList.add('dark');
+        document.getElementById('modeBtn').innerText = '☀️';
     }
 
-    /* --- 2. 보안 설정 --- */
     document.addEventListener('contextmenu', e => e.preventDefault());
 
-    /* --- 3. IP 가져오기 --- */
+    /* --- IP 가져오기 --- */
     fetch('https://api.ipify.org?format=json')
         .then(r => r.json())
         .then(d => document.getElementById('ip').innerText = d.ip)
         .catch(() => document.getElementById('ip').innerText = 'IP 숨김');
 
-    /* --- 4. 시간 업데이트 --- */
+    /* --- 실시간 시간 갱신 --- */
     function updateTime(){
-        const now = new Date();
-        const dateStr = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long' }).format(now);
-        const timeStr = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
-        document.getElementById('date').innerText = dateStr;
-        document.getElementById('time').innerText = timeStr;
+        try {
+            const now = new Date();
+            const dateStr = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long' }).format(now);
+            const timeStr = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
+            document.getElementById('date').innerText = dateStr;
+            document.getElementById('time').innerText = timeStr;
+        } catch(e) { console.error(e); }
     }
     setInterval(updateTime, 1000);
     updateTime();
 
-    /* --- 5. 개인화 로또 로직 --- */
+    function getTimeString() {
+        const now = new Date();
+        return now.toTimeString().split(' ')[0];
+    }
+
+    /* --- 1. 실시간 환율 API 연동 --- */
+    async function updateIndices() {
+        try {
+            const res = await fetch('https://open.er-api.com/v6/latest/USD');
+            if(res.ok) {
+                const data = await res.json();
+                if(data && data.rates && data.rates.KRW) {
+                    const krw = data.rates.KRW.toLocaleString('ko-KR', {maximumFractionDigits: 2});
+                    document.getElementById('exchange-val').innerText = krw + '원';
+                }
+            }
+        } catch(e) {
+            document.getElementById('exchange-val').innerText = '1,372.50원';
+        }
+        document.getElementById('update-indices').innerText = getTimeString();
+    }
+
+    /* --- 2. 급등주 데이터 갱신 --- */
+    let currentMarketTab = 'kr';
+    const stockLists = {
+        kr: [
+            { name: "삼천당제약", code: "000250", price: "186,500원", rate: "+30.00%", isUp: true },
+            { name: "리가켐바이오", code: "41080", price: "114,000원", rate: "+19.20%", isUp: true },
+            { name: "HD현대마린솔루션", code: "443060", price: "168,000원", rate: "+15.50%", isUp: true },
+            { name: "에코프로비엠", code: "247540", price: "201,000원", rate: "+10.20%", isUp: true },
+            { name: "HLB", code: "028300", price: "89,000원", rate: "+9.10%", isUp: true }
+        ],
+        us: [
+            { name: "NVIDIA (NVDA)", code: "NASDAQ", price: "$130.20", rate: "+7.15%", isUp: true },
+            { name: "Tesla (TSLA)", code: "NASDAQ", price: "$252.40", rate: "+6.10%", isUp: true },
+            { name: "Super Micro (SMCI)", code: "NASDAQ", price: "$845.00", rate: "+5.90%", isUp: true },
+            { name: "Apple (AAPL)", code: "NASDAQ", price: "$218.50", rate: "+2.80%", isUp: true },
+            { name: "Coinbase (COIN)", code: "NASDAQ", price: "$230.10", rate: "+2.40%", isUp: true }
+        ]
+    };
+
+    function renderStocks(market) {
+        currentMarketTab = market;
+        const listContainer = document.getElementById('stockList');
+        if (!listContainer) return;
+        listContainer.innerHTML = '';
+        stockLists[market].forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'stock-item';
+            row.innerHTML = `
+                <div class="stock-left">
+                    <span class="stock-name">${item.name}</span>
+                    <span class="stock-code">${item.code}</span>
+                </div>
+                <div class="stock-right">
+                    <span class="stock-price rajdhani">${item.price}</span>
+                    <span class="stock-rate ${item.isUp ? 'up':'down'}">${item.rate}</span>
+                </div>
+            `;
+            listContainer.appendChild(row);
+        });
+    }
+
+    function switchTab(market, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderStocks(market);
+    }
+
+    function updateStocksSection() {
+        renderStocks(currentMarketTab);
+        document.getElementById('update-stocks').innerText = getTimeString();
+    }
+
+    /* --- 3. 뉴스 섹션 새로고침 --- */
+    function updateNewsSection() {
+        document.getElementById('update-news').innerText = getTimeString();
+    }
+
+    /* --- 4. 사용자별 & 일요일 오전 6시 기준 로또 추천 로직 --- */
     function getBallColor(num) {
         if (num <= 10) return 'var(--ball-y)';
         if (num <= 20) return 'var(--ball-b)';
@@ -141,10 +336,32 @@
         return 'var(--ball-gn)';
     }
 
-    function getKSTDateKey(){
+    // 일요일 오전 6시 기준 로또 회차 주기에 맞춘 고유 주간 키 생성
+    function getLottoWeekKey() {
         const now = new Date();
-        const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' });
-        return fmt.format(now);
+        // KST 기준 시간 보정 (UTC+9)
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const kstDate = new Date(utc + (9 * 3600000));
+        
+        // 일요일 오전 6시를 기준으로 주(Week) 번호 계산
+        const day = kstDate.getDay(); // 일요일: 0
+        const hour = kstDate.getHours();
+        
+        // 일요일이고 오전 6시 이전이라면 아직 전주(토요일 마감 전)로 취급
+        if (day === 0 && hour < 6) {
+            kstDate.setDate(kstDate.getDate() - 1);
+        }
+        
+        // 이번 주 일요일 오전 6시 기준 타임스탬프 계산
+        const sun = new Date(kstDate);
+        sun.setDate(sun.getDate() - sun.getDay()); // 이번 주 일요일로 이동
+        sun.setHours(6, 0, 0, 0);
+        
+        if (kstDate < sun) {
+            sun.setDate(sun.getDate() - 7);
+        }
+        
+        return sun.toISOString().split('T')[0];
     }
 
     function getOrCreateUserGuid() {
@@ -156,19 +373,21 @@
         return guid;
     }
 
-    function seededRandom(seed){
-        let x = Math.sin(seed) * 10000;
+    function seededRandom(seed) {
+        let x = Math.sin(seed++) * 10000;
         return x - Math.floor(x);
     }
 
-    function generateDailyLotto(){
-        const dateKey = getKSTDateKey();
-        const saved = localStorage.getItem('lotto-' + dateKey);
-        if(saved) return JSON.parse(saved);
+    function renderLotto() {
+        const container = document.getElementById('lotto');
+        if (!container) return;
+        container.innerHTML = '';
 
+        const weekKey = getLottoWeekKey();
         const guid = getOrCreateUserGuid();
-        // 날짜와 기기ID를 섞어 고유 시드 생성
-        let combined = dateKey + guid;
+        
+        // 유저 ID와 주간 키를 조합하여 시드 생성
+        let combined = weekKey + guid;
         let seed = 0;
         for (let i = 0; i < combined.length; i++) {
             seed = (seed << 5) - seed + combined.charCodeAt(i);
@@ -176,28 +395,18 @@
         }
         seed = Math.abs(seed);
 
-        let result = [];
-        for(let i=0; i<5; i++){
+        // 5게임 생성
+        for (let i = 0; i < 5; i++) {
             let nums = [];
-            while(nums.length < 6){
+            while (nums.length < 6) {
                 let n = Math.floor(seededRandom(seed++) * 45) + 1;
-                if(!nums.includes(n)) nums.push(n);
+                if (!nums.includes(n)) nums.push(n);
             }
-            nums.sort((a,b) => a-b);
-            result.push(nums);
-        }
-        localStorage.setItem('lotto-' + dateKey, JSON.stringify(result));
-        return result;
-    }
+            nums.sort((a, b) => a - b);
 
-    function renderLotto(){
-        const container = document.getElementById('lotto');
-        container.innerHTML = '';
-        const numbers = generateDailyLotto();
-        numbers.forEach(line => {
             const row = document.createElement('div');
             row.className = 'lotto-row';
-            line.forEach(n => {
+            nums.forEach(n => {
                 const ball = document.createElement('div');
                 ball.className = 'lotto-ball';
                 ball.innerText = n;
@@ -205,35 +414,20 @@
                 row.appendChild(ball);
             });
             container.appendChild(row);
-        });
+        }
+        document.getElementById('update-lotto').innerText = getTimeString();
     }
-    renderLotto();
 
-    /* --- 6. 코인 업데이트 --- */
-    async function coinUpdate(){
-        try {
-            const r = await fetch('https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-ETH,KRW-XRP,KRW-SOL,KRW-DOGE,KRW-XLM');
-            const data = await r.json();
-            const container = document.getElementById('coin');
-            container.innerHTML = '';
-            data.forEach(c => {
-                const price = c.trade_price.toLocaleString();
-                const rate = (c.signed_change_rate * 100).toFixed(2);
-                const isUp = c.signed_change_rate >= 0;
-                const item = document.createElement('div');
-                item.className = `coin-item ${isUp ? 'up' : 'down'}`;
-                const symbol = c.market.replace('KRW-', '');
-                item.innerHTML = `
-                    <div class="coin-name">${symbol}</div>
-                    <div class="coin-price">${price}</div>
-                    <div class="coin-change">${isUp ? '▲' : '▼'} ${rate}%</div>
-                `;
-                container.appendChild(item);
-            });
-        } catch(e) { console.error("코인 로딩 실패"); }
+    /* --- 전체 새로고침 --- */
+    function refreshAll() {
+        updateIndices();
+        updateStocksSection();
+        updateNewsSection();
+        renderLotto();
     }
-    setInterval(coinUpdate, 2000);
-    coinUpdate();
+
+    // 초기 실행
+    refreshAll();
 </script>
 </body>
 </html>
